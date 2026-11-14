@@ -24,25 +24,25 @@ struct ExposureMeter: View {
                 ForEach(0..<5, id: \.self) { index in
                     Capsule()
                         .fill(color(index))
-                        .frame(width: 7, height: 4 + CGFloat(index) * 2.5)
+                        .frame(width: 8, height: 5 + CGFloat(index) * 3)
                 }
             }
-            .frame(height: 14, alignment: .bottom)
+            .frame(height: 17, alignment: .bottom)
             HStack(spacing: 3) {
                 Image(systemName: "arrow.down")
                     .foregroundStyle(exposure.pull.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.orange))
                 Image(systemName: "arrow.up")
                     .foregroundStyle(exposure.push.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.red))
             }
-            .font(.caption.weight(.bold))
+            .font(.callout.weight(.bold))
             VStack(alignment: .leading, spacing: 1) {
                 Text(none ? "Quiet" : exposure.label)
-                    .font(.caption.weight(.medium))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(none ? Color.secondary : .primary)
                 if !none {
                     Text(exposure.tags.prefix(3).joined(separator: " · ")
                          + (exposure.tags.count > 3 ? " +\(exposure.tags.count - 3)" : ""))
-                        .font(.caption2)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -71,10 +71,10 @@ struct SandboxGlyph: View {
             mark.frame(width: 26, height: 18)
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
-                    .font(.caption.weight(.medium))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(isPlain ? Color.secondary : .primary)
                 Text(detail)
-                    .font(.caption2)
+                    .font(.footnote)
                     .foregroundStyle(isPlain && app.runtime == .unsandboxed ? ink(Palette.orange) : Color.secondary)
                     .lineLimit(1)
             }
@@ -160,7 +160,7 @@ struct SignatureSeal: View {
             }
         }()
         Label {
-            Text(text).font(.caption).foregroundStyle(.secondary)
+            Text(text).font(.callout).foregroundStyle(.secondary)
         } icon: {
             Image(systemName: symbol).foregroundStyle(tint)
         }

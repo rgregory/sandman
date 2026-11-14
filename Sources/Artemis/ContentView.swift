@@ -230,11 +230,11 @@ struct ContentView: View {
                 HStack(spacing: 10) {
                     Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
                         .resizable()
-                        .frame(width: 28, height: 28)
+                        .frame(width: 32, height: 32)
                         .shadow(color: .black.opacity(0.12), radius: 1.5, y: 1)
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 5) {
-                            Text(app.name).font(.body.weight(.medium)).lineLimit(1)
+                            Text(app.name).font(.title3.weight(.medium)).lineLimit(1)
                             if app.runtime == .unsandboxed {
                                 LiveDot(color: Palette.orange)
                                     .help(seatbelts.entries[app.id] != nil
@@ -246,12 +246,12 @@ struct ContentView: View {
                             }
                         }
                         Text(app.version.isEmpty ? app.sourceLabel : "\(app.sourceLabel) · \(app.version)")
-                            .font(.caption2)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }
-                .padding(.vertical, 3)
+                .padding(.vertical, 4)
             }
             .width(min: 180, ideal: 240)
 
