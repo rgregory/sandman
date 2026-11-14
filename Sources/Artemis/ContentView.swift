@@ -236,12 +236,12 @@ struct ContentView: View {
                         HStack(spacing: 5) {
                             Text(app.name).font(.title3.weight(.medium)).lineLimit(1)
                             if app.runtime == .unsandboxed {
-                                LiveDot(color: Palette.orange)
+                                LiveDot(color: Palette.orange, selected: selection == app.id)
                                     .help(seatbelts.entries[app.id] != nil
                                           ? "Running right now without its seatbelt"
                                           : "Running right now without a sandbox")
                             } else if app.runtime == .sandboxed && seatbelts.entries[app.id] != nil {
-                                LiveDot(color: Palette.blue)
+                                LiveDot(color: Palette.blue, selected: selection == app.id)
                                     .help("Running right now with its seatbelt")
                             }
                         }
@@ -256,12 +256,12 @@ struct ContentView: View {
             .width(min: 180, ideal: 240)
 
             TableColumn("Exposure", value: \.riskScore) { app in
-                ExposureMeter(exposure: app.exposure)
+                ExposureMeter(exposure: app.exposure, selected: selection == app.id)
             }
             .width(min: 150, ideal: 175)
 
             TableColumn("Sandbox", value: \.statusLabel) { app in
-                SandboxGlyph(app: app, isManaged: seatbelts.entries[app.id] != nil)
+                SandboxGlyph(app: app, isManaged: seatbelts.entries[app.id] != nil, selected: selection == app.id)
             }
             .width(min: 120, ideal: 140)
 
@@ -288,7 +288,7 @@ struct ContentView: View {
             .width(min: 56, ideal: 64)
 
             TableColumn("Signature", value: \.signingLabel) { app in
-                SignatureSeal(app: app)
+                SignatureSeal(app: app, selected: selection == app.id)
             }
             .width(min: 110, ideal: 140)
         }

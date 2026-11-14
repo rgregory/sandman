@@ -6,16 +6,22 @@ struct ExposureMeter: View {
     /// Set on the selected row, whose solid accent background swallows coloured text:
     /// there, colours turn white.
     @Environment(\.backgroundProminence) private var prominence
-    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
+    @Environment(\.controlActiveState) private var activeState
+    private func ink(_ color: Color) -> Color {
+        prominence == .increased || (selected && activeState == .key) ? .white : color
+    }
     let exposure: Exposure
 
     private var filled: Int { Int((Double(exposure.score) * 5.0 / 7.0).rounded()) }
 
     private func color(_ index: Int) -> Color {
-        guard index < filled else { return Color.secondary.opacity(0.18) }
+        guard index < filled else { return ink(Color.secondary).opacity(0.25) }
         let t = Double(index) / 4.0
         return t < 0.4 ? ink(Palette.yellow) : (t < 0.8 ? ink(Palette.orange) : ink(Palette.red))
     }
+
+    /// The row is selected. SwiftUI's Table doesn't report this to its cells, so the list passes it.
+    var selected = false
 
     var body: some View {
         let none = exposure.reasons.isEmpty
@@ -30,9 +36,9 @@ struct ExposureMeter: View {
             .frame(height: 17, alignment: .bottom)
             HStack(spacing: 3) {
                 Image(systemName: "arrow.down")
-                    .foregroundStyle(exposure.pull.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.orange))
+                    .foregroundStyle(exposure.pull.isEmpty ? ink(Color.secondary).opacity(0.3) : ink(Palette.orange))
                 Image(systemName: "arrow.up")
-                    .foregroundStyle(exposure.push.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.red))
+                    .foregroundStyle(exposure.push.isEmpty ? ink(Color.secondary).opacity(0.3) : ink(Palette.red))
             }
             .font(.callout.weight(.bold))
             VStack(alignment: .leading, spacing: 1) {
@@ -62,9 +68,15 @@ struct SandboxGlyph: View {
     /// Set on the selected row, whose solid accent background swallows coloured text:
     /// there, colours turn white.
     @Environment(\.backgroundProminence) private var prominence
-    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
+    @Environment(\.controlActiveState) private var activeState
+    private func ink(_ color: Color) -> Color {
+        prominence == .increased || (selected && activeState == .key) ? .white : color
+    }
     let app: AppRecord
     var isManaged = false
+
+    /// The row is selected. SwiftUI's Table doesn't report this to its cells, so the list passes it.
+    var selected = false
 
     var body: some View {
         HStack(spacing: 8) {
@@ -146,15 +158,21 @@ struct SignatureSeal: View {
     /// Set on the selected row, whose solid accent background swallows coloured text:
     /// there, colours turn white.
     @Environment(\.backgroundProminence) private var prominence
-    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
+    @Environment(\.controlActiveState) private var activeState
+    private func ink(_ color: Color) -> Color {
+        prominence == .increased || (selected && activeState == .key) ? .white : color
+    }
     let app: AppRecord
+
+    /// The row is selected. SwiftUI's Table doesn't report this to its cells, so the list passes it.
+    var selected = false
 
     var body: some View {
         let (symbol, tint, text): (String, Color, String) = {
             switch app.signing {
             case .signed:
                 return app.hardenedRuntime ? ("checkmark.seal.fill", ink(Palette.green), app.sourceLabel)
-                    : ("checkmark.seal", .secondary, app.sourceLabel)
+                    : ("checkmark.seal", ink(Color.secondary), app.sourceLabel)
             case .adHoc: return ("seal", ink(Palette.orange), "Ad hoc")
             case .unsigned: return ("xmark.seal.fill", ink(Palette.red), "Unsigned")
             }
@@ -173,9 +191,15 @@ struct LiveDot: View {
     /// Set on the selected row, whose solid accent background swallows coloured text:
     /// there, colours turn white.
     @Environment(\.backgroundProminence) private var prominence
-    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
+    @Environment(\.controlActiveState) private var activeState
+    private func ink(_ color: Color) -> Color {
+        prominence == .increased || (selected && activeState == .key) ? .white : color
+    }
     let color: Color
     @State private var pulse = false
+
+    /// The row is selected. SwiftUI's Table doesn't report this to its cells, so the list passes it.
+    var selected = false
 
     var body: some View {
         ZStack {
