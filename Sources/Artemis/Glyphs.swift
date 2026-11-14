@@ -3,6 +3,10 @@ import SwiftUI
 /// Exposure as a heat meter: five segments that fill and warm from amber to red, with
 /// arrows for the two directions (pulls content in, takes orders from an agent).
 struct ExposureMeter: View {
+    /// Set on the selected row, whose solid accent background swallows coloured text:
+    /// there, colours turn white.
+    @Environment(\.backgroundProminence) private var prominence
+    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
     let exposure: Exposure
 
     private var filled: Int { Int((Double(exposure.score) * 5.0 / 7.0).rounded()) }
@@ -10,7 +14,7 @@ struct ExposureMeter: View {
     private func color(_ index: Int) -> Color {
         guard index < filled else { return Color.secondary.opacity(0.18) }
         let t = Double(index) / 4.0
-        return t < 0.4 ? Palette.yellow : (t < 0.8 ? Palette.orange : Palette.red)
+        return t < 0.4 ? ink(Palette.yellow) : (t < 0.8 ? ink(Palette.orange) : ink(Palette.red))
     }
 
     var body: some View {
@@ -26,9 +30,9 @@ struct ExposureMeter: View {
             .frame(height: 14, alignment: .bottom)
             HStack(spacing: 3) {
                 Image(systemName: "arrow.down")
-                    .foregroundStyle(exposure.pull.isEmpty ? Color.secondary.opacity(0.3) : Palette.orange)
+                    .foregroundStyle(exposure.pull.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.orange))
                 Image(systemName: "arrow.up")
-                    .foregroundStyle(exposure.push.isEmpty ? Color.secondary.opacity(0.3) : Palette.red)
+                    .foregroundStyle(exposure.push.isEmpty ? Color.secondary.opacity(0.3) : ink(Palette.red))
             }
             .font(.caption.weight(.bold))
             VStack(alignment: .leading, spacing: 1) {
@@ -55,6 +59,10 @@ struct ExposureMeter: View {
 /// The sandbox state drawn rather than written: a shield for App Sandbox, an open lock for
 /// none, and a fanned stack of cards, one per sandbox, for Chromium and Firefox apps.
 struct SandboxGlyph: View {
+    /// Set on the selected row, whose solid accent background swallows coloured text:
+    /// there, colours turn white.
+    @Environment(\.backgroundProminence) private var prominence
+    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
     let app: AppRecord
     var isManaged = false
 
@@ -67,7 +75,7 @@ struct SandboxGlyph: View {
                     .foregroundStyle(isPlain ? Color.secondary : .primary)
                 Text(detail)
                     .font(.caption2)
-                    .foregroundStyle(isPlain && app.runtime == .unsandboxed ? Palette.orange : Color.secondary)
+                    .foregroundStyle(isPlain && app.runtime == .unsandboxed ? ink(Palette.orange) : Color.secondary)
                     .lineLimit(1)
             }
         }
@@ -111,15 +119,15 @@ struct SandboxGlyph: View {
 
     @ViewBuilder private var mark: some View {
         if isManaged {
-            Image(systemName: "shield.lefthalf.filled").font(.body).foregroundStyle(Palette.blue)
+            Image(systemName: "shield.lefthalf.filled").font(.body).foregroundStyle(ink(Palette.blue))
         } else if app.isSandboxed {
-            Image(systemName: "checkmark.shield.fill").font(.body).foregroundStyle(Palette.green)
+            Image(systemName: "checkmark.shield.fill").font(.body).foregroundStyle(ink(Palette.green))
         } else if app.isLayered {
             let count = max(2, min(app.sandboxLayers, 6))
             ZStack(alignment: .leading) {
                 ForEach(0..<count, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 2.5, style: .continuous)
-                        .fill(Palette.indigo.opacity(0.35 + 0.65 * Double(index + 1) / Double(count)))
+                        .fill(ink(Palette.indigo).opacity(0.35 + 0.65 * Double(index + 1) / Double(count)))
                         .overlay(RoundedRectangle(cornerRadius: 2.5).strokeBorder(.background, lineWidth: 1))
                         .frame(width: 11, height: 14)
                         .offset(x: CGFloat(index) * 3, y: CGFloat(count - 1 - index) * -0.8)
@@ -127,7 +135,7 @@ struct SandboxGlyph: View {
             }
         } else {
             Image(systemName: "lock.open.fill").font(.callout)
-                .foregroundStyle(app.signing == .unsigned ? Palette.red : Palette.orange)
+                .foregroundStyle(app.signing == .unsigned ? ink(Palette.red) : ink(Palette.orange))
         }
     }
 }
@@ -135,16 +143,20 @@ struct SandboxGlyph: View {
 /// Signature as a seal: filled and green when signed and hardened, outlined when signed
 /// without the hardened runtime, amber for ad hoc, red for unsigned.
 struct SignatureSeal: View {
+    /// Set on the selected row, whose solid accent background swallows coloured text:
+    /// there, colours turn white.
+    @Environment(\.backgroundProminence) private var prominence
+    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
     let app: AppRecord
 
     var body: some View {
         let (symbol, tint, text): (String, Color, String) = {
             switch app.signing {
             case .signed:
-                return app.hardenedRuntime ? ("checkmark.seal.fill", Palette.green, app.sourceLabel)
+                return app.hardenedRuntime ? ("checkmark.seal.fill", ink(Palette.green), app.sourceLabel)
                     : ("checkmark.seal", .secondary, app.sourceLabel)
-            case .adHoc: return ("seal", Palette.orange, "Ad hoc")
-            case .unsigned: return ("xmark.seal.fill", Palette.red, "Unsigned")
+            case .adHoc: return ("seal", ink(Palette.orange), "Ad hoc")
+            case .unsigned: return ("xmark.seal.fill", ink(Palette.red), "Unsigned")
             }
         }()
         Label {
@@ -158,15 +170,19 @@ struct SignatureSeal: View {
 
 /// A soft breathing dot for an app that is running right now.
 struct LiveDot: View {
+    /// Set on the selected row, whose solid accent background swallows coloured text:
+    /// there, colours turn white.
+    @Environment(\.backgroundProminence) private var prominence
+    private func ink(_ color: Color) -> Color { prominence == .increased ? .white : color }
     let color: Color
     @State private var pulse = false
 
     var body: some View {
         ZStack {
-            Circle().fill(color.opacity(0.35)).frame(width: 12, height: 12)
+            Circle().fill(ink(color).opacity(0.35)).frame(width: 12, height: 12)
                 .scaleEffect(pulse ? 1 : 0.5)
                 .opacity(pulse ? 0 : 1)
-            Circle().fill(color).frame(width: 6, height: 6)
+            Circle().fill(ink(color)).frame(width: 6, height: 6)
         }
         .frame(width: 12, height: 12)
         .onAppear {
