@@ -219,7 +219,18 @@ struct ContentView: View {
         let managed = scoped.filter { seatbelts.entries[$0.id] != nil }.count
         let exposedNow = scoped.filter { seatbelts.entries[$0.id] != nil && $0.runtime == .unsandboxed }.count
 
-        return VStack(spacing: 10) {
+        // The headline is always about what is running now, whatever the filters.
+        let running = store.apps.filter { (showApple || !$0.isApple) && $0.runtime != .notRunning }
+        let atRisk = running.filter { governance($0) == .open }
+        let exposedAtRisk = atRisk.filter { !$0.exposure.reasons.isEmpty }.count
+
+        return VStack(spacing: 12) {
+            RiskHeadline(running: running.count, atRisk: atRisk.count, exposed: exposedAtRisk) {
+                withAnimation(.smooth) {
+                    activeOnly = true
+                    filter = .unprotected
+                }
+            }
             HStack(spacing: 10 + theme.gap * 2) {
                 StatTile(title: "No sandbox", count: open, symbol: "lock.open.fill",
                          tint: Palette.orange, isActive: filter == .unprotected) { withAnimation(.smooth) { filter = .unprotected } }
@@ -562,6 +573,74 @@ struct StatTile: View {
     }
 }
 
+/// The one number that matters most: how many of the apps running right now have nothing
+/// keeping them in check, as a ring and a sentence. Click to list them.
+struct RiskHeadline: View {
+    let running: Int
+    let atRisk: Int
+    /// How many of those also pull in outside content or take orders from an agent.
+    let exposed: Int
+    let show: () -> Void
+
+    private var fraction: Double { running == 0 ? 0 : Double(atRisk) / Double(running) }
+    private var tint: Color { atRisk == 0 ? Palette.green : (fraction >= 0.5 ? Palette.red : Palette.orange) }
+
+    var body: some View {
+        Button(action: show) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle().stroke(tint.opacity(0.18), lineWidth: 9)
+                    Circle()
+                        .trim(from: 0, to: fraction)
+                        .stroke(tint, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .animation(.smooth(duration: 0.6), value: fraction)
+                    Text("\(Int((fraction * 100).rounded()))%")
+                        .font(.system(.title3, design: .rounded, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(tint)
+                        .contentTransition(.numericText(value: fraction))
+                }
+                .frame(width: 66, height: 66)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(headline)
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .contentTransition(.numericText(value: Double(atRisk)))
+                    Text(detail)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                if atRisk > 0 {
+                    Label("Show them", systemImage: "arrow.right.circle.fill")
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(tint)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(headline + ". " + detail)
+    }
+
+    private var headline: String {
+        if running == 0 { return "No apps running" }
+        if atRisk == 0 { return "All \(running) running apps are protected" }
+        return "\(atRisk) of \(running) running apps at risk"
+    }
+
+    private var detail: String {
+        if atRisk == 0 { return "Each one is sandboxed, layered or wearing Sandman's seatbelt." }
+        var text = "No sandbox and no seatbelt: \(atRisk == 1 ? "it" : "they") can read and change anything you can."
+        if exposed > 0 {
+            text += " \(exposed) of them \(exposed == 1 ? "pulls" : "pull") in outside content or \(exposed == 1 ? "takes" : "take") orders from an agent."
+        }
+        return text
+    }
+}
+
 /// How the apps in view split by what keeps them in check: sandboxed, layered, managed, or
 /// nothing at all. The label gives the share with no governance.
 struct CoverageBar: View {
@@ -593,7 +672,7 @@ struct CoverageBar: View {
                 .animation(.smooth(duration: 0.6), value: open)
             }
             .frame(height: 8)
-            Text(runningOnly ? "\(openPercent)% of running apps ungoverned" : "\(openPercent)% ungoverned")
+            Text(runningOnly ? "\(openPercent)% of running apps at risk" : "\(openPercent)% at risk")
                 .font(.caption.weight(openPercent > 0 ? .semibold : .regular))
                 .monospacedDigit()
                 .foregroundStyle(openPercent > 0 ? Palette.orange : Color.secondary)

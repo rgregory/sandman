@@ -18,7 +18,9 @@ macOS 14+ and Xcode 15+.
 
 ## Reading the list
 
-The list opens on apps with no sandbox, riskiest first. The tiles split
+Up top: how many of the apps running right now are at risk (no sandbox,
+no seatbelt), as a ring and a sentence; click it to list them. The list opens
+on apps with no sandbox, riskiest first. The tiles split
 the apps by what keeps them in check (No sandbox, Layered, Managed,
 Sandboxed) and the bar shows the share with none at all; the ⚡ toolbar toggle narrows
 everything to apps running right now.
