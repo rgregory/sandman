@@ -52,6 +52,15 @@ Electron apps whose windows run unsandboxed get a red ⚠ and rank higher.
        alt="Three panels. App Sandbox: one green sandbox around the main process and all its helpers, set by the developer. Its own sandboxes: no App Sandbox on the main process, but each helper locked in its own indigo box, as in Chromium and Firefox. Sandman's seatbelt: one blue profile wrapped around the whole app from outside. Underneath: they don't nest; macOS refuses with forbidden-sandbox-reinit.">
 </p>
 
+Click the **Layered** tile to see it for a real app: each process, whether
+it's sandboxed right now, and the IPC lines to the main process that brokers
+for them.
+
+<p align="center">
+  <img src="docs/layered-view.png" width="100%"
+       alt="Sandman with the Layered tile selected. At the top, a red ring reads 50 percent: 7 of 14 apps running unsupervised. Below, Claude's card: the main process on the left in dashed orange, 1 running, not sandboxed, joined by an IPC line to its helpers on the right. Renderers, GPU, Network service and Audio service are indigo and sandboxed; Utility services and the crash reporter are red, running without a sandbox.">
+</p>
+
 [More →](docs/layered-sandboxes.md)
 
 ## Deep dives

@@ -52,6 +52,12 @@ renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
   main process (the broker, open) on the left, an IPC line to each sandboxed
   helper on the right, with live counts when the app is running.
 
+<p align="center">
+  <img src="layered-view.png" width="100%"
+       alt="Sandman with the Layered tile selected. At the top, a red ring reads 50 percent: 7 of 14 apps running unsupervised. Below, Claude's card: the main process on the left in dashed orange, 1 running, not sandboxed, joined by an IPC line to its helpers on the right. Renderers, GPU, Network service and Audio service are indigo and sandboxed; Utility services and the crash reporter are red, running without a sandbox.">
+</p>
+
+
 - The Sandbox column draws these apps as a fanned stack of indigo cards with
   the number of sandboxed process kinds it found, for example "4 sandboxes"
   for Chrome, and the layers underneath (Pages · GPU · Network · Plugins ·
