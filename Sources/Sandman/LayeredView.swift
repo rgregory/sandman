@@ -146,8 +146,10 @@ struct SandboxDiagram: View {
                         Image(systemName: "arrowtriangle.right.fill")
                             .font(.system(size: 7))
                             .foregroundStyle(Palette.indigo.opacity(0.8))
-                        ProcessBox(name: layer.name, role: layer.role, state: layer.stateLabel,
-                                   sandboxed: layer.isSandboxed, isMain: false)
+                        ProcessBox(name: layer.name, role: layer.role,
+                                   state: layer.unsandboxedByDesign ? byDesignLabel(layer) : layer.stateLabel,
+                                   sandboxed: layer.isSandboxed, isMain: false,
+                                   byDesign: layer.unsandboxedByDesign)
                             .frame(height: rowHeight)
                     }
                 }
@@ -165,6 +167,11 @@ struct SandboxDiagram: View {
     }
 }
 
+private func byDesignLabel(_ layer: SandboxLayer) -> String {
+    if case let .live(running, _) = layer.state { return "\(running) running · unsandboxed by design" }
+    return "Unsandboxed by design"
+}
+
 /// One process in the diagram. The main process is dashed orange (open); a sandboxed helper
 /// is solid indigo with a lock; a helper running without its sandbox is red.
 struct ProcessBox: View {
@@ -173,8 +180,11 @@ struct ProcessBox: View {
     let state: String
     let sandboxed: Bool?
     let isMain: Bool
+    /// Never sandboxed on purpose (the crash reporter): grey, not red.
+    var byDesign = false
 
     private var tint: Color {
+        if byDesign { return .secondary }
         if isMain { return sandboxed == true ? Palette.green : Palette.orange }
         switch sandboxed {
         case true?: return Palette.indigo
@@ -186,7 +196,7 @@ struct ProcessBox: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: isMain ? (sandboxed == true ? "lock.shield.fill" : "lock.open.fill")
-                  : (sandboxed == false ? "lock.open.fill" : "lock.fill"))
+                  : byDesign ? "lock.open" : (sandboxed == false ? "lock.open.fill" : "lock.fill"))
                 .font(.title3)
                 .foregroundStyle(tint)
                 .frame(width: 22)

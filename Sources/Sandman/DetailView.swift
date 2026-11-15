@@ -780,6 +780,7 @@ struct SandboxLayersPanel: View {
     }
 
     private func symbol(_ layer: SandboxLayer) -> String {
+        if layer.unsandboxedByDesign { return "lock.open" }
         switch layer.isSandboxed {
         case true?: return layer.order == 0 ? "lock.shield.fill" : "lock.fill"
         case false?: return "lock.open.fill"
@@ -788,6 +789,7 @@ struct SandboxLayersPanel: View {
     }
 
     private func tint(_ layer: SandboxLayer) -> Color {
+        if layer.unsandboxedByDesign { return .secondary }
         switch layer.isSandboxed {
         case true?: return Palette.green
         case false?: return Palette.orange

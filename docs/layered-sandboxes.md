@@ -51,6 +51,9 @@ renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
 - Click the **Layered** tile for a card per app that draws its sandboxes: the
   main process (the broker, open) on the left, an IPC line to each sandboxed
   helper on the right, with live counts when the app is running.
+  Red means a helper that should be sandboxed and isn't. The crash reporter is
+  grey: Chromium never sandboxes it, on purpose, because it has to read other
+  processes to write a crash report.
 
 <p align="center">
   <img src="layered-view.png" width="100%"

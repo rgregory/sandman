@@ -22,6 +22,10 @@ struct SandboxLayer: Identifiable, Hashable, Sendable {
     var state: State
     let order: Int
 
+    /// Processes Chromium never sandboxes, on purpose (the crash reporter has to be able to
+    /// read other processes to do its job). Shown neutral, not as a failure.
+    var unsandboxedByDesign: Bool { order == 8 }
+
     var isSandboxed: Bool? {
         switch state {
         case let .live(running, sandboxed): return sandboxed == running ? true : (sandboxed == 0 ? false : nil)
@@ -100,7 +104,7 @@ enum SandboxLayerScanner {
         let exe = (executable as NSString).lastPathComponent
 
         if app.ownSandbox == .chromium {
-            if exe.contains("crashpad") { return ("Crash reporter", "Collects crash reports", 8) }
+            if exe.contains("crashpad") { return ("Crash reporter", "Collects crash reports; has to read other processes, so never sandboxed", 8) }
             let type = value(of: "--type=", in: arguments)
             switch type {
             case nil where !nested: return ("Main process", "Runs the window, tabs and settings, and starts everything else", 0)
@@ -112,6 +116,7 @@ enum SandboxLayerScanner {
                 if sub.hasPrefix("network.") { return ("Network service", "Fetches everything from the internet", 3) }
                 if sub.hasPrefix("storage.") { return ("Storage service", "Reads and writes site data", 4) }
                 if sub.hasPrefix("audio.") { return ("Audio service", "Plays and records sound", 5) }
+                if sub.hasPrefix("node.") { return ("Node utility", "Runs the app's own Node.js code in the background", 6) }
                 return ("Utility services", "Decode files, audio and other untrusted data", 6)
             case "ppapi"?, "plugin"?: return ("Plugins", "Run plugin code", 7)
             default: break
