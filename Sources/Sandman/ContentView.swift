@@ -4,8 +4,6 @@ import UniformTypeIdentifiers
 
 enum Filter: String, CaseIterable {
     case unprotected, layered, managed, sandboxed, all
-    /// Running unsupervised and exposed: reached only from the headline's Show button.
-    case highRisk
 }
 
 /// What, if anything, keeps an app in check. Every app is exactly one of these, so the tiles
@@ -59,7 +57,6 @@ struct ContentView: View {
         case .managed: rows = rows.filter { seatbelts.entries[$0.id] != nil }
         case .sandboxed: rows = rows.filter { $0.isSandboxed }
         case .all: break
-        case .highRisk: rows = rows.filter { governance($0) == .open && !$0.exposure.reasons.isEmpty }
         }
         let query = search.trimmingCharacters(in: .whitespaces)
         if !query.isEmpty {
@@ -227,16 +224,10 @@ struct ContentView: View {
         let exposedAtRisk = atRisk.filter { !$0.exposure.reasons.isEmpty }.count
 
         return VStack(spacing: 12) {
-            RiskHeadline(running: running.count, atRisk: atRisk.count, exposed: exposedAtRisk) {
-                withAnimation(.smooth) {
-                    activeOnly = true
-                    filter = exposedAtRisk > 0 ? .highRisk : .unprotected
-                }
-            }
-            .padding(.leading, 6)
+            RiskHeadline(running: running.count, atRisk: atRisk.count, exposed: exposedAtRisk)
             HStack(spacing: 10 + theme.gap * 2) {
                 StatTile(title: "No sandbox", count: open, symbol: "lock.open.fill",
-                         tint: Palette.orange, isActive: filter == .unprotected || filter == .highRisk) { withAnimation(.smooth) { filter = .unprotected } }
+                         tint: Palette.orange, isActive: filter == .unprotected) { withAnimation(.smooth) { filter = .unprotected } }
                 StatTile(title: "Layered", count: layered, symbol: "square.stack.3d.up.fill",
                          tint: Palette.indigo, isActive: filter == .layered) { withAnimation(.smooth) { filter = .layered } }
                 StatTile(title: exposedNow == 0 ? "Managed" : "Managed · \(exposedNow) unprotected",
@@ -262,6 +253,8 @@ struct ContentView: View {
     private var table: some View {
         if filter == .managed {
             managedCards
+        } else if filter == .layered {
+            LayeredGallery(apps: visible, selection: $selection, showInspector: $showInspector)
         } else {
             decorated(standardTable)
         }
@@ -584,42 +577,42 @@ struct RiskHeadline: View {
     let atRisk: Int
     /// How many of those also pull in outside content or take orders from an agent.
     let exposed: Int
-    let show: () -> Void
 
     private var fraction: Double { running == 0 ? 0 : Double(atRisk) / Double(running) }
     /// The share that is open *and* exposed: high risk, drawn in red at the start of the ring.
     private var highFraction: Double { running == 0 ? 0 : Double(exposed) / Double(running) }
+    /// The headline's share, as a whole percentage.
+    private var percent: Int { Int(((exposed > 0 ? highFraction : fraction) * 100).rounded()) }
     private var tint: Color { atRisk == 0 ? Palette.green : (exposed > 0 ? Palette.red : Palette.orange) }
 
     var body: some View {
-        Button(action: show) {
-            HStack(spacing: 16) {
+        HStack(spacing: 18) {
                 ZStack {
-                    Circle().stroke(tint.opacity(0.18), lineWidth: 9)
+                    Circle().stroke(tint.opacity(0.18), lineWidth: 13)
                     // Orange: open but quiet. Red, drawn over it from the top: open and exposed.
                     Circle()
                         .trim(from: 0, to: fraction)
-                        .stroke(Palette.orange, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                        .stroke(Palette.orange, style: StrokeStyle(lineWidth: 13, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .animation(.smooth(duration: 0.6), value: fraction)
                     Circle()
                         .trim(from: 0, to: highFraction)
-                        .stroke(Palette.red, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                        .stroke(Palette.red, style: StrokeStyle(lineWidth: 13, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .animation(.smooth(duration: 0.6), value: highFraction)
-                    VStack(spacing: -2) {
-                        Text("\(exposed > 0 ? exposed : atRisk)")
-                            .font(.system(.title2, design: .rounded, weight: .bold))
+                    VStack(spacing: 0) {
+                        Text("\(percent)%")
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
                             .monospacedDigit()
                             .foregroundStyle(tint)
-                            .contentTransition(.numericText(value: Double(exposed > 0 ? exposed : atRisk)))
-                        Text("of \(running)")
-                            .font(.caption2.weight(.medium))
+                            .contentTransition(.numericText(value: Double(percent)))
+                        Text("\(exposed > 0 ? exposed : atRisk) of \(running)")
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(.secondary)
                     }
                 }
-                .frame(width: 66, height: 66)
-                .padding(5)
+                .frame(width: 108, height: 108)
+                .padding(8)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(headline)
@@ -631,15 +624,8 @@ struct RiskHeadline: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
-                if atRisk > 0 {
-                    Label(exposed > 0 ? "Show the \(exposed)" : "Show them", systemImage: "arrow.right.circle.fill")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(tint)
-                }
-            }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(headline + ". " + detail)
     }
 

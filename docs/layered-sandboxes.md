@@ -48,6 +48,10 @@ renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
 
 ## What Sandman shows
 
+- Click the **Layered** tile for a card per app that draws its sandboxes: the
+  main process (the broker, open) on the left, an IPC line to each sandboxed
+  helper on the right, with live counts when the app is running.
+
 - The Sandbox column draws these apps as a fanned stack of indigo cards with
   the number of sandboxed process kinds it found, for example "4 sandboxes"
   for Chrome, and the layers underneath (Pages · GPU · Network · Plugins ·
