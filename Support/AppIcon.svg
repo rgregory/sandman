@@ -60,4 +60,12 @@
   <!-- mound -->
   <path d="M388 566 C420 470 480 446 520 452 C566 458 606 496 624 566 C590 596 420 596 388 566z" fill="url(#mound)"/>
   <path d="M410 566 C440 500 480 474 512 474" fill="none" stroke="#FFF7DC" stroke-width="8" stroke-linecap="round" opacity=".7"/>
+  <!-- the sand is dozing: closed eyes, rosy cheeks, a small smile -->
+  <g fill="none" stroke="#7A3F18" stroke-width="7" stroke-linecap="round">
+    <path d="M462 520 q14 12 28 0"/>
+    <path d="M536 520 q14 12 28 0"/>
+    <path d="M500 546 q13 9 26 0" stroke-width="6"/>
+  </g>
+  <ellipse cx="452" cy="540" rx="13" ry="8" fill="#F28C6A" opacity=".45"/>
+  <ellipse cx="574" cy="540" rx="13" ry="8" fill="#F28C6A" opacity=".45"/>
 </svg>
