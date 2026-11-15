@@ -18,8 +18,9 @@ macOS 14+ and Xcode 15+.
 
 ## Reading the list
 
-The list opens on apps with no sandbox, riskiest first. The tiles switch
-between No sandbox, Managed, Sandboxed and All; the ⚡ toolbar toggle narrows
+The list opens on apps with no sandbox, riskiest first. The tiles split
+the apps by what keeps them in check (No sandbox, Layered, Managed,
+Sandboxed) and the bar shows the share with none at all; the ⚡ toolbar toggle narrows
 everything to apps running right now.
 
 <p align="center">

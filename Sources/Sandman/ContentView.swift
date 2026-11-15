@@ -3,7 +3,21 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum Filter: String, CaseIterable {
-    case unprotected, managed, sandboxed, all
+    case unprotected, layered, managed, sandboxed, all
+}
+
+/// What, if anything, keeps an app in check. Every app is exactly one of these, so the tiles
+/// add up to the total.
+enum Governance {
+    /// App Sandbox on the main process.
+    case sandboxed
+    /// No App Sandbox, but its helpers each run in a sandbox of their own (Chromium, Firefox).
+    case layered
+    /// Sandman's seatbelt.
+    case managed
+    /// Nothing: full user access. Includes layered apps whose renderers run unsandboxed and
+    /// managed apps running right now without their seatbelt.
+    case open
 }
 
 struct ContentView: View {
@@ -38,7 +52,8 @@ struct ContentView: View {
     private var visible: [AppRecord] {
         var rows = scoped
         switch filter {
-        case .unprotected: rows = rows.filter { !$0.isSandboxed }
+        case .unprotected: rows = rows.filter { governance($0) == .open }
+        case .layered: rows = rows.filter { governance($0) == .layered }
         case .managed: rows = rows.filter { seatbelts.entries[$0.id] != nil }
         case .sandboxed: rows = rows.filter { $0.isSandboxed }
         case .all: break
@@ -187,10 +202,20 @@ struct ContentView: View {
 
     // MARK: Header
 
+    private func governance(_ app: AppRecord) -> Governance {
+        if app.isSandboxed { return .sandboxed }
+        if seatbelts.entries[app.id] != nil { return app.runtime == .unsandboxed ? .open : .managed }
+        if app.isLayered && app.rendererRisk == nil { return .layered }
+        return .open
+    }
+
     private var header: some View {
         let total = scoped.count
-        let sandboxed = scoped.filter(\.isSandboxed).count
-        let open = total - sandboxed
+        let kinds = scoped.map(governance)
+        let sandboxed = kinds.filter { $0 == .sandboxed }.count
+        let layered = kinds.filter { $0 == .layered }.count
+        let managedGoverned = kinds.filter { $0 == .managed }.count
+        let open = kinds.filter { $0 == .open }.count
         let managed = scoped.filter { seatbelts.entries[$0.id] != nil }.count
         let exposedNow = scoped.filter { seatbelts.entries[$0.id] != nil && $0.runtime == .unsandboxed }.count
 
@@ -198,16 +223,19 @@ struct ContentView: View {
             HStack(spacing: 10 + theme.gap * 2) {
                 StatTile(title: "No sandbox", count: open, symbol: "lock.open.fill",
                          tint: Palette.orange, isActive: filter == .unprotected) { withAnimation(.smooth) { filter = .unprotected } }
+                StatTile(title: "Layered", count: layered, symbol: "square.stack.3d.up.fill",
+                         tint: Palette.indigo, isActive: filter == .layered) { withAnimation(.smooth) { filter = .layered } }
                 StatTile(title: exposedNow == 0 ? "Managed" : "Managed · \(exposedNow) unprotected",
                          count: managed,
                          symbol: exposedNow == 0 ? "shield.lefthalf.filled" : "exclamationmark.shield.fill",
                          tint: exposedNow == 0 ? Palette.blue : Palette.red, isActive: filter == .managed) { withAnimation(.smooth) { filter = .managed } }
                 StatTile(title: "Sandboxed", count: sandboxed, symbol: "lock.shield.fill",
                          tint: Palette.green, isActive: filter == .sandboxed) { withAnimation(.smooth) { filter = .sandboxed } }
-                StatTile(title: "All applications", count: total, symbol: "square.grid.2x2.fill",
+                StatTile(title: activeOnly ? "Running apps" : "All applications", count: total, symbol: "square.grid.2x2.fill",
                          tint: .accentColor, isActive: filter == .all) { withAnimation(.smooth) { filter = .all } }
             }
-            CoverageBar(sandboxed: sandboxed, total: total)
+            CoverageBar(sandboxed: sandboxed, layered: layered, managed: managedGoverned,
+                        open: open, runningOnly: activeOnly)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -391,7 +419,7 @@ struct ContentView: View {
                 switch filter {
                 case .unprotected:
                     ContentUnavailableView(
-                        "Everything here is sandboxed",
+                        "Nothing here is ungoverned",
                         systemImage: "checkmark.shield",
                         description: Text("Nothing matches the current filter.")
                     )
@@ -534,34 +562,45 @@ struct StatTile: View {
     }
 }
 
-/// Thin proportion bar: how much of the scanned set is sandboxed.
+/// How the apps in view split by what keeps them in check: sandboxed, layered, managed, or
+/// nothing at all. The label gives the share with no governance.
 struct CoverageBar: View {
     let sandboxed: Int
-    let total: Int
+    let layered: Int
+    let managed: Int
+    let open: Int
+    var runningOnly = false
 
-    private var fraction: Double { total == 0 ? 0 : Double(sandboxed) / Double(total) }
+    private var total: Int { sandboxed + layered + managed + open }
+    private var openPercent: Int { total == 0 ? 0 : Int((Double(open) / Double(total) * 100).rounded()) }
+
+    private var segments: [(Int, Color)] {
+        [(sandboxed, Palette.green), (layered, Palette.indigo), (managed, Palette.blue), (open, Palette.orange.opacity(0.55))]
+    }
 
     var body: some View {
         HStack(spacing: 10) {
             GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Palette.orange.opacity(0.25))
-                    Capsule()
-                        .fill(LinearGradient(colors: [Palette.green.opacity(0.75), Palette.green],
-                                             startPoint: .leading, endPoint: .trailing))
-                        .frame(width: max(0, geo.size.width * fraction))
-                        .shadow(color: Palette.green.opacity(0.35), radius: 3)
-                        .animation(.smooth(duration: 0.6), value: fraction)
+                HStack(spacing: 2) {
+                    ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                        if segment.0 > 0 {
+                            Capsule().fill(segment.1)
+                                .frame(width: max(4, (geo.size.width - 6) * Double(segment.0) / Double(max(total, 1))))
+                        }
+                    }
                 }
+                .animation(.smooth(duration: 0.6), value: total)
+                .animation(.smooth(duration: 0.6), value: open)
             }
             .frame(height: 8)
-            Text("\(Int((fraction * 100).rounded()))% sandboxed")
-                .font(.caption)
+            Text(runningOnly ? "\(openPercent)% of running apps ungoverned" : "\(openPercent)% ungoverned")
+                .font(.caption.weight(openPercent > 0 ? .semibold : .regular))
                 .monospacedDigit()
-                .foregroundStyle(.secondary)
+                .foregroundStyle(openPercent > 0 ? Palette.orange : Color.secondary)
+                .help("No App Sandbox, no sandboxed helpers, and no seatbelt from Sandman: full access to your files")
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(Int((fraction * 100).rounded())) percent of applications are sandboxed")
+        .accessibilityLabel("\(openPercent) percent of \(runningOnly ? "running " : "")applications have no sandbox or seatbelt")
     }
 }
 
