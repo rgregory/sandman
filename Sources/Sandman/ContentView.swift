@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 enum Filter: String, CaseIterable {
     case unprotected, layered, managed, sandboxed, all
-    /// Open and exposed: reached only from the headline's Show them.
+    /// Running unsupervised and exposed: reached only from the headline's Show button.
     case highRisk
 }
 
@@ -645,20 +645,19 @@ struct RiskHeadline: View {
 
     private var headline: String {
         if running == 0 { return "No apps running" }
-        if atRisk == 0 { return "All \(running) running apps are protected" }
-        if exposed > 0 { return "\(exposed) of \(running) running apps at high risk" }
-        return "\(atRisk) of \(running) running apps at risk"
+        if atRisk == 0 { return "All \(running) running apps are supervised" }
+        return "\(exposed > 0 ? exposed : atRisk) of \(running) apps running unsupervised"
     }
 
     private var detail: String {
         if atRisk == 0 { return "Each one is sandboxed, layered or wearing Sandman's seatbelt." }
         if exposed > 0 {
             let quiet = atRisk - exposed
-            var text = "Open to your files and facing outside content or agents"
-            if quiet > 0 { text += " · \(quiet) more open but quiet" }
+            var text = "No sandbox or seatbelt, and facing outside content or agents"
+            if quiet > 0 { text += " · \(quiet) more unsupervised but quiet" }
             return text
         }
-        return "No sandbox and no seatbelt: \(atRisk == 1 ? "it" : "they") can read and change anything you can, but nothing outside reaches \(atRisk == 1 ? "it" : "them")."
+        return "No sandbox or seatbelt, but nothing outside reaches \(atRisk == 1 ? "it" : "them")"
     }
 }
 
