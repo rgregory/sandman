@@ -623,8 +623,8 @@ struct RiskHeadline: View {
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity)   // ring and sentence sit centred in the window
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(headline + ". " + detail)
     }
