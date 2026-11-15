@@ -5,6 +5,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Lets the app come forward even when launched unbundled via `swift run`.
         NSApp.setActivationPolicy(.regular)
+        // Set the Dock icon from our own bundle. When Launch Services hasn't caught up with
+        // the bundle (after the rename, or when run unbundled) the Dock otherwise shows the
+        // generic "exec" icon.
+        if let path = Bundle.main.path(forResource: "AppIcon", ofType: "icns"),
+           let icon = NSImage(contentsOfFile: path) {
+            NSApp.applicationIconImage = icon
+        }
         NSApp.activate(ignoringOtherApps: true)
     }
 
