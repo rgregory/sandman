@@ -702,6 +702,13 @@ struct SandboxLayersPanel: View {
                             }
                         }
 
+                        if !report.isLive, let risk = app.rendererRisk {
+                            Label(risk.explanation, systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(Palette.red)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
                         if let warning = warning(report) {
                             Label(warning, systemImage: "exclamationmark.triangle.fill")
                                 .font(.caption)

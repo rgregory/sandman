@@ -87,7 +87,9 @@ struct SandboxGlyph: View {
                     .foregroundStyle(isPlain ? Color.secondary : .primary)
                 Text(detail)
                     .font(.footnote)
-                    .foregroundStyle(isPlain && app.runtime == .unsandboxed ? ink(Palette.orange) : Color.secondary)
+                    .foregroundStyle(app.rendererRisk != nil && app.isLayered && !isManaged ? ink(Palette.red)
+                                     : isPlain && app.runtime == .unsandboxed ? ink(Palette.orange) : Color.secondary)
+                    .fontWeight(app.rendererRisk != nil && app.isLayered && !isManaged ? .semibold : nil)
                     .lineLimit(1)
             }
         }
@@ -104,6 +106,7 @@ struct SandboxGlyph: View {
             let extra = app.entitlements.filter { $0.key.hasPrefix("com.apple.security.") && $0.key != SandboxInspector.sandboxKey }.count
             return extra == 0 ? "Container only" : "Container + \(extra) permission\(extra == 1 ? "" : "s")"
         }
+        if app.isLayered, let risk = app.rendererRisk { return risk.short }
         if app.isLayered {
             return app.sandboxLayerNames.prefix(4).joined(separator: " · ") + " · main open"
         }
@@ -123,6 +126,7 @@ struct SandboxGlyph: View {
     }
 
     private var help: String {
+        if app.isLayered && !isManaged, let risk = app.rendererRisk { return risk.explanation }
         if app.isLayered && !isManaged {
             return "The main process has no App Sandbox, but \(app.sandboxLayers) kinds of helper process (web pages, GPU, network…) each run in a sandbox of their own."
         }
@@ -143,6 +147,15 @@ struct SandboxGlyph: View {
                         .overlay(RoundedRectangle(cornerRadius: 2.5).strokeBorder(.background, lineWidth: 1))
                         .frame(width: 11, height: 14)
                         .offset(x: CGFloat(index) * 3, y: CGFloat(count - 1 - index) * -0.8)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if app.rendererRisk != nil {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(ink(Palette.red))
+                        .background(Circle().fill(.background).padding(-1))
+                        .offset(x: 6, y: -5)
                 }
             }
         } else {

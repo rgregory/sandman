@@ -52,6 +52,17 @@ renderer sandbox off.
 - The panel warns when renderers or web content run unsandboxed. That means
   the app was started with `--no-sandbox`, or its developer turned sandboxing
   off.
+- Chromium and Electron apps whose renderers aren't actually sandboxed get a
+  red warning triangle on their stack, a red second line, and rank higher in
+  the list. Artemis catches them two ways:
+  - Live: the app is running and at least one renderer has no sandbox
+    ("Renderers unsandboxed").
+  - From the bundle: it's built on Electron older than 20, when renderers
+    were unsandboxed by default ("Electron 13.6.9: renderers open"). Start the
+    app to confirm.
+
+  An Electron app that turns the sandbox off in its own code is only caught
+  live, while it runs.
 - Other apps that ship sandboxed XPC services or helpers (Sparkle's
   downloader, for example) show "N sandboxed helpers" and get the panel too.
 

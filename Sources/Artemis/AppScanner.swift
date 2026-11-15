@@ -83,6 +83,9 @@ enum AppScanner {
         let sandboxed = info.sandboxEntitlement || isIOSApp
 
         let ownSandbox = OwnSandbox.detect(bundle: codeURL)
+        let rendererRisk = ownSandbox == .chromium
+            ? SandboxLayerScanner.rendererRisk(bundle: codeURL, isRunning: runtime != .notRunning)
+            : nil
         return AppRecord(
             id: url.path,
             url: url,
@@ -102,7 +105,8 @@ enum AppScanner {
             exposure: ExposureScanner.assess(bundle: codeURL, plist: plist, bundleID: bundleID,
                                              name: name, entitlements: info.entitlements),
             ownSandbox: ownSandbox,
-            sandboxLayerNames: SandboxLayerScanner.sandboxedLayerNames(bundle: codeURL, ownSandbox: ownSandbox)
+            sandboxLayerNames: SandboxLayerScanner.sandboxedLayerNames(bundle: codeURL, ownSandbox: ownSandbox),
+            rendererRisk: rendererRisk
         )
     }
 }

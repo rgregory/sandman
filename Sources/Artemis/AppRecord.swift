@@ -70,6 +70,31 @@ enum OwnSandbox: String, Sendable, Hashable {
     }
 }
 
+/// A Chromium or Electron app whose renderers (the processes that run web content) are,
+/// or are likely to be, outside a sandbox. Its "N sandboxes" then overstate the protection.
+enum RendererRisk: Hashable, Sendable {
+    /// Seen running: this many renderer processes had no sandbox.
+    case liveUnsandboxed(Int)
+    /// Built on an Electron older than 20, where renderers were unsandboxed by default.
+    case oldElectron(String)
+
+    var short: String {
+        switch self {
+        case .liveUnsandboxed: return "Renderers unsandboxed"
+        case let .oldElectron(version): return "Electron \(version): renderers open"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case let .liveUnsandboxed(count):
+            return "\(count) renderer process\(count == 1 ? "" : "es") running without a sandbox. Web content in this app runs with your full permissions: it was started with --no-sandbox, or its developer turned the renderer sandbox off."
+        case let .oldElectron(version):
+            return "Built on Electron \(version). Before Electron 20, renderers were unsandboxed unless the developer opted in. Start the app to check its running processes."
+        }
+    }
+}
+
 struct AppRecord: Identifiable, Hashable, Sendable {
     let id: String              // resolved bundle path
     let url: URL
@@ -93,6 +118,8 @@ struct AppRecord: Identifiable, Hashable, Sendable {
     /// sandboxed XPC services), not counting the main process.
     let sandboxLayerNames: [String]
     var sandboxLayers: Int { sandboxLayerNames.count }
+    /// Set when its renderers are, or are likely to be, unsandboxed.
+    let rendererRisk: RendererRisk?
 
     /// No App Sandbox on the main process, but its helpers each run in a sandbox of their own.
     var isLayered: Bool { !isSandboxed && ownSandbox != nil }
@@ -105,7 +132,8 @@ struct AppRecord: Identifiable, Hashable, Sendable {
     }
 
     /// For sorting: an app with no sandbox ranks by its exposure, a sandboxed one ranks last.
-    var riskScore: Int { isSandboxed ? -1 : exposure.score }
+    /// Unsandboxed renderers add one: web content then runs with your full permissions.
+    var riskScore: Int { isSandboxed ? -1 : exposure.score + (rendererRisk == nil ? 0 : 1) }
     var riskLabel: String { exposure.label }
 
     /// "Own sandbox" for Chromium and Firefox apps: no App Sandbox on the main process, but

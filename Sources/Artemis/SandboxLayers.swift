@@ -198,6 +198,27 @@ enum SandboxLayerScanner {
         return layers.sorted { ($0.order, $0.name) < ($1.order, $1.name) }
     }
 
+    /// Chromium-family apps only. Running: any renderer outside a sandbox. Otherwise: an
+    /// Electron older than 20, whose renderers were unsandboxed by default.
+    static func rendererRisk(bundle: URL, isRunning: Bool) -> RendererRisk? {
+        if isRunning {
+            let root = bundle.resolvingSymlinksInPath().path + "/"
+            var renderers = 0, open = 0
+            for pid in allPIDs() {
+                guard let path = executablePath(pid), path.hasPrefix(root),
+                      value(of: "--type=", in: arguments(of: pid)) == "renderer" else { continue }
+                renderers += 1
+                if !SandboxInspector.isProcessSandboxed(pid) { open += 1 }
+            }
+            if renderers > 0 { return open > 0 ? .liveUnsandboxed(open) : nil }
+        }
+        let plist = bundle.appendingPathComponent("Contents/Frameworks/Electron Framework.framework/Resources/Info.plist")
+        guard let info = NSDictionary(contentsOf: plist),
+              let version = (info["CFBundleVersion"] ?? info["CFBundleShortVersionString"]) as? String,
+              let major = Int(version.split(separator: ".").first ?? ""), major < 20 else { return nil }
+        return .oldElectron(version)
+    }
+
     /// Counted while scanning, for the Sandbox column: sandboxed process kinds in the bundle.
     static func sandboxedLayerNames(bundle: URL, ownSandbox: OwnSandbox?) -> [String] {
         var names: [String] = []
