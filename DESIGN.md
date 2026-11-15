@@ -26,6 +26,32 @@ under `docs/`.
 - **Plain words.** Short sentences, no marketing, no jargon without a
   one-line explanation.
 
+## Diagram style
+
+The reference is `docs/layered-sandboxes.svg`. Match it.
+
+- **Flat and light, GitHub-docs feel.** White card, no gradients, no textures,
+  no 3D. Soft rounded corners (10-16px), 1.2-3px strokes, generous whitespace.
+- **Side-by-side panels** for anything compared (2-3 across). Each panel:
+  bold title (17px, semibold), muted one-line subtitle (12px), the diagram,
+  then a 3-4 line plain-language caption underneath (13px).
+- **A container with a pill label on its border** names what each diagram is
+  (`APP SANDBOX`, `SANDMAN SEATBELT`): small caps, 11px semibold, coloured
+  outline, background-filled so it sits on the line.
+- **Rounded tiles inside** for the parts (processes, helpers), labelled in
+  plain words. Neutral grey outline unless the colour means something.
+- **Colour carries meaning, and only meaning:** green = protected/safe,
+  orange + dashed outline = open/unprotected, indigo = sandboxes itself,
+  blue = Sandman's seatbelt, red = blocked/risky. Tinted fills are pale
+  versions of the stroke colour.
+- **One footer callout strip** for the takeaway: pale panel, a small
+  pictogram on the left, a **bold lead-in sentence**, then one or two plain
+  sentences. Code in monospace, coloured by meaning.
+- **System font stack, 960px wide viewBox,** colours in classes with an
+  `@media (prefers-color-scheme: dark)` block, full `alt` text where embedded.
+- **No decoration that doesn't explain something.** If a shape doesn't help
+  the reader understand, cut it.
+
 ## App
 
 - Visual over textual: glyphs, meters and stacks in the list; words go on the

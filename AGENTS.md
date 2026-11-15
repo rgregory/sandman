@@ -9,6 +9,8 @@ Instructions for AI agents working on Sandman.
 
 ## Docs
 
+- Diagrams follow the Diagram style in DESIGN.md; `docs/layered-sandboxes.svg`
+  is the reference to match.
 - No Markdown tables, anywhere. Draw comparisons as SVG diagrams instead
   (see DESIGN.md).
 - Keep `README.md` short: overview, run, reading the list, one visual per big
