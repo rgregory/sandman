@@ -583,18 +583,26 @@ struct RiskHeadline: View {
     let show: () -> Void
 
     private var fraction: Double { running == 0 ? 0 : Double(atRisk) / Double(running) }
-    private var tint: Color { atRisk == 0 ? Palette.green : (fraction >= 0.5 ? Palette.red : Palette.orange) }
+    /// The share that is open *and* exposed: high risk, drawn in red at the start of the ring.
+    private var highFraction: Double { running == 0 ? 0 : Double(exposed) / Double(running) }
+    private var tint: Color { atRisk == 0 ? Palette.green : (exposed > 0 ? Palette.red : Palette.orange) }
 
     var body: some View {
         Button(action: show) {
             HStack(spacing: 16) {
                 ZStack {
                     Circle().stroke(tint.opacity(0.18), lineWidth: 9)
+                    // Orange: open but quiet. Red, drawn over it from the top: open and exposed.
                     Circle()
                         .trim(from: 0, to: fraction)
-                        .stroke(tint, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                        .stroke(Palette.orange, style: StrokeStyle(lineWidth: 9, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .animation(.smooth(duration: 0.6), value: fraction)
+                    Circle()
+                        .trim(from: 0, to: highFraction)
+                        .stroke(Palette.red, style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                        .animation(.smooth(duration: 0.6), value: highFraction)
                     Text("\(Int((fraction * 100).rounded()))%")
                         .font(.system(.title3, design: .rounded, weight: .bold))
                         .monospacedDigit()
@@ -628,16 +636,19 @@ struct RiskHeadline: View {
     private var headline: String {
         if running == 0 { return "No apps running" }
         if atRisk == 0 { return "All \(running) running apps are protected" }
+        if exposed > 0 { return "\(exposed) of \(running) running apps at high risk" }
         return "\(atRisk) of \(running) running apps at risk"
     }
 
     private var detail: String {
         if atRisk == 0 { return "Each one is sandboxed, layered or wearing Sandman's seatbelt." }
-        var text = "No sandbox and no seatbelt: \(atRisk == 1 ? "it" : "they") can read and change anything you can."
         if exposed > 0 {
-            text += " \(exposed) of them \(exposed == 1 ? "pulls" : "pull") in outside content or \(exposed == 1 ? "takes" : "take") orders from an agent."
+            let quiet = atRisk - exposed
+            var text = "Open to your files and \(exposed == 1 ? "pulls" : "pull") in outside content or \(exposed == 1 ? "takes" : "take") orders from an agent."
+            if quiet > 0 { text += " \(quiet) more \(quiet == 1 ? "is" : "are") open but quiet." }
+            return text
         }
-        return text
+        return "No sandbox and no seatbelt: \(atRisk == 1 ? "it" : "they") can read and change anything you can, but nothing outside reaches \(atRisk == 1 ? "it" : "them")."
     }
 }
 
