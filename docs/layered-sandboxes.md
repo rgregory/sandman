@@ -33,10 +33,18 @@ process, which has no App Sandbox and runs with your full permissions. That is
 why Artemis lists these apps among the unsandboxed ones, but doesn't treat
 them as wide open.
 
-Electron apps only get this if the developer leaves it on. Renderer
-sandboxing is the default in current Electron, but the app's own code runs in
-the main process with full access, and older or misconfigured apps switch the
-renderer sandbox off.
+Electron apps (Slack, Obsidian, Claude, VS Code and many more) are less
+certain. An Electron app is Chromium plus Node.js, and it has two halves:
+
+- **Its windows** are web pages, drawn by renderer processes. These can be
+  sandboxed like a browser tab. Since Electron 20 (2022) they are by default,
+  but a developer can switch it off, and apps built on an older Electron had
+  them unsandboxed unless the developer switched it on.
+- **Its own code** runs in the main process under Node.js, with no sandbox and
+  your full permissions, whatever the windows do.
+
+So "4 sandboxes" on an Electron app is only true if its developer kept the
+renderer sandbox on. Artemis checks, and flags the ones that didn't (below).
 
 ## What Artemis shows
 
