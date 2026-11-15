@@ -9,7 +9,7 @@ struct TelemetryEvent: Codable, Identifiable, Hashable, Sendable {
         case unmanaged          // removed
         case launch             // started with its seatbelt
         case exit               // a protected run ended
-        case unprotectedRun     // opened outside Artemis, no seatbelt
+        case unprotectedRun     // opened outside Sandman, no seatbelt
         case blocked            // the seatbelt denied something
     }
 
@@ -106,7 +106,7 @@ private final class LineBuffer: @unchecked Sendable {
 
 /// Records what managed applications do: launches, exits, runs without a seatbelt, and
 /// every attempt the seatbelt blocked. Kept in memory for the UI and appended to a
-/// JSON-lines file for anything downstream. Only records while Artemis is open.
+/// JSON-lines file for anything downstream. Only records while Sandman is open.
 @MainActor
 final class TelemetryStore: ObservableObject {
     @Published private(set) var events: [TelemetryEvent] = []
@@ -127,7 +127,7 @@ final class TelemetryStore: ObservableObject {
     private var executableNames: [String: String] = [:]     // main program name -> bundle path
     private var realToPublic: [String: String] = [:]        // where a replaced app really is -> its usual path
     private var trackedPIDs: [Int32: String] = [:]          // live protected process -> bundle path
-    private var artemisLaunches: [String: Date] = [:]       // bundle path -> when Artemis started it
+    private var sandmanLaunches: [String: Date] = [:]       // bundle path -> when Sandman started it
     private var lastSeen: [String: Date] = [:]              // de-duplication of repeated denials
     private var stream: Process?
     private var sampler: Timer?
@@ -157,12 +157,12 @@ final class TelemetryStore: ObservableObject {
         record(TelemetryEvent(kind: kind, appPath: path, appName: name, detail: detail))
     }
 
-    /// Called when Artemis itself has started an app under its seatbelt.
-    func artemisLaunched(path: String, name: String, pid: Int32) {
+    /// Called when Sandman itself has started an app under its seatbelt.
+    func sandmanLaunched(path: String, name: String, pid: Int32) {
         trackedPIDs[pid] = path
-        artemisLaunches[path] = Date()
+        sandmanLaunches[path] = Date()
         var event = TelemetryEvent(kind: .launch, appPath: path, appName: name,
-                                   detail: "Started from Artemis with its seatbelt.")
+                                   detail: "Started from Sandman with its seatbelt.")
         event.pid = pid
         record(event)
     }
@@ -307,8 +307,8 @@ final class TelemetryStore: ObservableObject {
             try? await Task.sleep(for: .seconds(1))     // give the process time to finish starting
             if SandboxInspector.isProcessSandboxed(pid) {
                 trackedPIDs[pid] = path
-                let byArtemis = artemisLaunches[path].map { Date().timeIntervalSince($0) < 15 } ?? false
-                if !byArtemis {
+                let bySandman = sandmanLaunches[path].map { Date().timeIntervalSince($0) < 15 } ?? false
+                if !bySandman {
                     var event = TelemetryEvent(kind: .launch, appPath: path, appName: entry.name,
                                                detail: "Started from its launcher with its seatbelt.")
                     event.pid = pid
@@ -316,7 +316,7 @@ final class TelemetryStore: ObservableObject {
                 }
             } else {
                 var event = TelemetryEvent(kind: .unprotectedRun, appPath: path, appName: entry.name,
-                                           detail: "Opened outside Artemis. It ran with no seatbelt.")
+                                           detail: "Opened outside Sandman. It ran with no seatbelt.")
                 event.pid = pid
                 record(event)
             }
@@ -350,7 +350,7 @@ final class TelemetryStore: ObservableObject {
             Task { @MainActor in
                 self?.stream = nil
                 if code != 0 && code != 15 {
-                    self?.streamProblem = "Blocked attempts aren't being recorded: macOS wouldn't let Artemis read the system log."
+                    self?.streamProblem = "Blocked attempts aren't being recorded: macOS wouldn't let Sandman read the system log."
                         + (text.isEmpty ? "" : " (\(text))")
                 }
             }

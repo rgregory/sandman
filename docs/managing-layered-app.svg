@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 456" width="960" height="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
-  <title>Keeping an app's own sandboxes versus swapping in Artemis's seatbelt</title>
+  <title>Keeping an app's own sandboxes versus swapping in Sandman's seatbelt</title>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="red"/></marker>
   </defs>
@@ -66,13 +66,13 @@
 
   <line x1="480" y1="20" x2="480" y2="436" class="line" stroke-width="1"/>
 
-  <!-- ================= RIGHT: Artemis seatbelt ================= -->
+  <!-- ================= RIGHT: Sandman seatbelt ================= -->
   <g transform="translate(500,0)">
-    <text class="h ink" x="10" y="32">Swap in Artemis's seatbelt</text>
+    <text class="h ink" x="10" y="32">Swap in Sandman's seatbelt</text>
     <text class="s muted" x="10" y="52">After ticking "Turn off its own sandbox"</text>
 
     <rect x="4" y="66" width="312" height="202" rx="18" class="tblue sblue" stroke-width="3"/>
-    <text class="pill blue" x="22" y="88">ARTEMIS SEATBELT</text>
+    <text class="pill blue" x="22" y="88">SANDMAN SEATBELT</text>
     <rect x="28" y="104" width="120" height="40" rx="7" class="box" stroke-width="1.2"/>
     <text class="lbl ink" x="88" y="128" text-anchor="middle">Main process</text>
     <rect x="168" y="104" width="124" height="40" rx="7" class="box" stroke-width="1.2"/>

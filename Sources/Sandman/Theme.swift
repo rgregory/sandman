@@ -18,7 +18,7 @@ enum Palette {
     static let indigo = adaptive((0.29, 0.20, 0.74), (0.66, 0.62, 1.00))
 }
 
-/// The looks Artemis can wear, chosen under View > Theme.
+/// The looks Sandman can wear, chosen under View > Theme.
 enum AppTheme: String, CaseIterable, Identifiable {
     case standard, retro, os9, copland, things, ink
 

@@ -1,6 +1,6 @@
 # Agents
 
-Instructions for AI agents working on Artemis.
+Instructions for AI agents working on Sandman.
 
 ## Read first
 

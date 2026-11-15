@@ -1,6 +1,6 @@
 # Design
 
-How Artemis looks and how its docs read. Applies to the app and to everything
+How Sandman looks and how its docs read. Applies to the app and to everything
 under `docs/`.
 
 ## Documentation
@@ -16,7 +16,7 @@ under `docs/`.
   font stack, no web fonts, no external references.
 - **Use the app's own vocabulary and colours** in diagrams: green for App
   Sandbox, orange for open, indigo for an app's own sandboxes, blue for
-  Artemis's seatbelt, red for blocked or risky.
+  Sandman's seatbelt, red for blocked or risky.
 - **Check the render.** Rasterise each SVG (for example `rsvg-convert`) and
   look at it before committing. No overlapping labels, no text past its box.
 - **README is the overview, `docs/` is the depth.** README: what it is, how to

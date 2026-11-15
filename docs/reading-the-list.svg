@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 284" width="960" height="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
-  <title>How to read a row in Artemis</title>
+  <title>How to read a row in Sandman</title>
   <style>
     .bg{fill:#ffffff}.panel{fill:#f6f8fa}.ink{fill:#1f2328}.muted{fill:#59636e}.line{stroke:#d1d9e0}.dim{fill:#d1d9e0}
     .green{fill:#1a7f37}.orange{fill:#bc4c00}.yellow{fill:#9a6700}.red{fill:#cf222e}.indigo{fill:#5034c4}.blue{fill:#0969da}
@@ -65,7 +65,7 @@
     <text class="red" x="50" y="168" font-weight="600">Renderers open: web content unboxed</text>
     <path transform="translate(18,188)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="blue"/>
     <path transform="translate(18,188)" d="M9 0 V21 C4 19 0 15 0 10 V4 Z" fill="#fff" opacity=".45"/>
-    <text class="ink" x="50" y="204">Managed: Artemis's seatbelt</text>
+    <text class="ink" x="50" y="204">Managed: Sandman's seatbelt</text>
     <text class="muted" x="16" y="230">Second line says what it means for that app</text>
   </g>
 

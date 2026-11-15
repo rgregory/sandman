@@ -67,17 +67,17 @@
     <text class="ink" x="10" y="322">Each helper locks itself in as it starts.</text>
     <text class="ink" x="10" y="342">Web pages get the strictest box: no files,</text>
     <text class="ink" x="10" y="362">no network. The main process stays open,</text>
-    <text class="ink" x="10" y="380">so Artemis shows these as "N sandboxes".</text>
+    <text class="ink" x="10" y="380">so Sandman shows these as "N sandboxes".</text>
   </g>
 
-  <!-- ===== 3 Artemis's seatbelt ===== -->
+  <!-- ===== 3 Sandman's seatbelt ===== -->
   <g transform="translate(645,0)">
-    <text class="h ink" x="10" y="32">Artemis's seatbelt</text>
+    <text class="h ink" x="10" y="32">Sandman's seatbelt</text>
     <text class="s muted" x="10" y="52">Set by you, by managing the app</text>
     <rect x="4" y="72" width="292" height="226" rx="20" class="tblue sblue" stroke-width="3"/>
     <rect x="16" y="86" width="268" height="198" rx="12" class="bg line" stroke-width="1.2" stroke-dasharray="6 5"/>
     <rect x="85" y="62" width="130" height="20" rx="10" class="bg sblue" stroke-width="1.5"/>
-    <text class="pill blue" x="150" y="76" text-anchor="middle">ARTEMIS SEATBELT</text>
+    <text class="pill blue" x="150" y="76" text-anchor="middle">SANDMAN SEATBELT</text>
     <rect x="30" y="104" width="240" height="46" rx="8" class="box" stroke-width="1.2"/>
     <text class="lbl ink" x="150" y="132" text-anchor="middle">Main process</text>
     <g class="box" stroke-width="1.2">

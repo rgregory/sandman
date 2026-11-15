@@ -1,11 +1,11 @@
 # How it works
 
-Every signed Mac app carries a list of entitlements. Artemis reads that list
+Every signed Mac app carries a list of entitlements. Sandman reads that list
 for each app and looks for one entry: `com.apple.security.app-sandbox`. If it
 is there and set to true, the app is sandboxed. It is the same thing you would
 see from `codesign -d --entitlements - SomeApp.app`.
 
-For apps that are open, Artemis also asks macOS whether the running process is
+For apps that are open, Sandman also asks macOS whether the running process is
 really in a sandbox. That is how it tells a managed app running with its
 seatbelt from one running without it.
 
@@ -26,7 +26,7 @@ real one under `sandbox-exec` with that profile.
 - "Block all network access" does not stop DNS lookups, which go through a
   macOS service.
 
-Artemis is not sandboxed itself. It couldn't inspect other apps if it were.
+Sandman is not sandboxed itself. It couldn't inspect other apps if it were.
 
 ---
 [← Back to the README](../README.md)

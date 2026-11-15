@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Artemis",
+    name: "Sandman",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "Artemis",
-            path: "Sources/Artemis"
+            name: "Sandman",
+            path: "Sources/Sandman"
         )
     ]
 )

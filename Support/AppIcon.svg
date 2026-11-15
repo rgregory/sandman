@@ -26,7 +26,7 @@
   <!-- macOS icon plate -->
   <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)" filter="url(#shadow)"/>
 
-  <!-- crescent moon (Artemis) -->
+  <!-- crescent moon (the Sandman) -->
   <path d="M318 218 a70 70 0 1 0 62 104 a56 56 0 1 1 -62 -104z" fill="#FFF3C4"/>
   <circle cx="452" cy="236" r="6" fill="#FFF3C4" opacity=".8"/>
   <circle cx="706" cy="262" r="5" fill="#FFF3C4" opacity=".6"/>

@@ -1,6 +1,6 @@
 # Managed Applications
 
-A managed application is an unsandboxed app that Artemis has written a
+A managed application is an unsandboxed app that Sandman has written a
 sandbox (seatbelt) profile for and can start inside it. The app itself is not
 modified.
 
@@ -48,10 +48,10 @@ Applications. Deleting removes the profile and launcher, not the app.
 
 ## When a managed app is running unprotected
 
-The seatbelt only applies when the app is started from Artemis or from its
+The seatbelt only applies when the app is started from Sandman or from its
 launcher. Opened any other way, it runs with your full permissions.
 
-Artemis makes that state obvious: the card gets a red banner and border, its
+Sandman makes that state obvious: the card gets a red banner and border, its
 protections are struck through, and the Managed tile turns red with a count.
 Quit & Relaunch Protected asks the app to quit and starts it again with its
 seatbelt.
@@ -61,11 +61,17 @@ not the instant you open something from the Dock.
 
 ## Where things are kept
 
-- Profiles: `~/Library/Application Support/Artemis/Profiles`
+- Profiles: `~/Library/Application Support/Sandman/Profiles`
 - Launchers: `~/Applications/Managed Applications`
-- Logs: `~/Library/Application Support/Artemis/Logs`
+- Logs: `~/Library/Application Support/Sandman/Logs`
 
 A managed app can't write to any of these.
+
+Sandman was called Artemis. On first launch it moves
+`~/Library/Application Support/Artemis` to `Sandman`, carries over your
+settings, and points existing launchers at the new folder, so apps you managed
+before the rename keep working. macOS treats it as a new app, so its privacy
+prompts may appear once more.
 
 This relies on `sandbox-exec`, which Apple has marked deprecated but still
 ships.
@@ -81,7 +87,7 @@ Applications.
 
 What it does not cover: a file or link that opens in the app can still start
 the real app directly. The app's own updater may complain that it has moved.
-macOS may ask for permission before Artemis can move an app, and apps
+macOS may ask for permission before Sandman can move an app, and apps
 installed by an administrator for all users may refuse to move.
 
 ---

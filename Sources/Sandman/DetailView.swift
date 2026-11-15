@@ -287,7 +287,7 @@ struct SeatbeltSection: View {
             Button("Replace App") { attempt { try seatbelts.replace(app) } }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Artemis moves the real app to ~/Applications/Managed Applications/Originals and puts a launcher with the same name and icon in its place. macOS may ask for permission to change apps. Files and links that open in \(app.name) can still start it without its seatbelt, and its own updater may complain that it has moved. Restore Original App undoes this.")
+            Text("Sandman moves the real app to ~/Applications/Managed Applications/Originals and puts a launcher with the same name and icon in its place. macOS may ask for permission to change apps. Files and links that open in \(app.name) can still start it without its seatbelt, and its own updater may complain that it has moved. Restore Original App undoes this.")
         }
     }
 
@@ -393,7 +393,7 @@ struct ProtectionStanza: View {
     private var heading: (text: String, symbol: String, tint: Color) {
         switch runtime {
         case .sandboxed: return ("Protected now", "checkmark.shield.fill", Palette.green)
-        case .notRunning: return ("Protected when launched from Artemis", "shield.lefthalf.filled", Palette.blue)
+        case .notRunning: return ("Protected when launched from Sandman", "shield.lefthalf.filled", Palette.blue)
         case .unsandboxed: return ("RUNNING UNPROTECTED", "exclamationmark.triangle.fill", Palette.red)
         }
     }
@@ -405,7 +405,7 @@ struct ProtectionStanza: View {
                 .foregroundStyle(heading.tint)
 
             if runtime == .unsandboxed {
-                Text("\(name) was opened outside Artemis. Quit it and use Launch Protected.")
+                Text("\(name) was opened outside Sandman. Quit it and use Launch Protected.")
                     .font(.callout)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -462,7 +462,7 @@ struct ManageSheet: View {
                     .frame(width: 52, height: 52)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Manage \(app.name)?").font(.title2.weight(.semibold))
-                    Text("Artemis will give it a seatbelt. The app itself is not changed.")
+                    Text("Sandman will give it a seatbelt. The app itself is not changed.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -508,7 +508,7 @@ struct ManageSheet: View {
             }
 
             Label {
-                Text("The seatbelt only applies when you start \(app.name) from Artemis or from its launcher in ~/Applications/Managed Applications. Opened any other way, it runs unprotected.")
+                Text("The seatbelt only applies when you start \(app.name) from Sandman or from its launcher in ~/Applications/Managed Applications. Opened any other way, it runs unprotected.")
                     .font(.callout)
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
@@ -567,7 +567,7 @@ struct ActivitySection: View {
                 }
 
                 if recent.isEmpty {
-                    Text("Nothing recorded yet. Artemis records launches, exits, runs without the seatbelt and blocked attempts while it is open.")
+                    Text("Nothing recorded yet. Sandman records launches, exits, runs without the seatbelt and blocked attempts while it is open.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -612,7 +612,7 @@ struct ActivitySection: View {
 
     private func export() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "artemis-\(app.name)-activity.jsonl"
+        panel.nameFieldStringValue = "sandman-\(app.name)-activity.jsonl"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             try telemetry.export(path: app.id, to: url)

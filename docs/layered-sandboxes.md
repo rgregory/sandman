@@ -6,7 +6,7 @@ in layers.
 
 <p align="center">
   <img src="layered-sandboxes.svg" width="100%"
-       alt="Three panels. App Sandbox: one green sandbox around the main process and all its helpers, set by the developer. Its own sandboxes: no App Sandbox on the main process, but each helper (Pages, GPU, Network, Utility) locked in its own indigo box, as in Chromium and Firefox. Artemis's seatbelt: one blue profile wrapped around the whole app from outside. Underneath: they don't nest; macOS refuses with forbidden-sandbox-reinit.">
+       alt="Three panels. App Sandbox: one green sandbox around the main process and all its helpers, set by the developer. Its own sandboxes: no App Sandbox on the main process, but each helper (Pages, GPU, Network, Utility) locked in its own indigo box, as in Chromium and Firefox. Sandman's seatbelt: one blue profile wrapped around the whole app from outside. Underneath: they don't nest; macOS refuses with forbidden-sandbox-reinit.">
 </p>
 
 All three are built on the same macOS mechanism (Seatbelt), and it doesn't
@@ -30,7 +30,7 @@ helper into its own profile as it starts:
 A hostile page has to escape the renderer, then find a second bug in a more
 trusted process, before it reaches your files. The weak spot is the main
 process, which has no App Sandbox and runs with your full permissions. That is
-why Artemis lists these apps among the unsandboxed ones, but doesn't treat
+why Sandman lists these apps among the unsandboxed ones, but doesn't treat
 them as wide open.
 
 Electron apps (Slack, Obsidian, Claude, VS Code and many more) are less
@@ -44,9 +44,9 @@ certain. An Electron app is Chromium plus Node.js, and it has two halves:
   your full permissions, whatever the windows do.
 
 So "4 sandboxes" on an Electron app is only true if its developer kept the
-renderer sandbox on. Artemis checks, and flags the ones that didn't (below).
+renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
 
-## What Artemis shows
+## What Sandman shows
 
 - The Sandbox column draws these apps as a fanned stack of indigo cards with
   the number of sandboxed process kinds it found, for example "4 sandboxes"
@@ -62,7 +62,7 @@ renderer sandbox on. Artemis checks, and flags the ones that didn't (below).
   off.
 - Chromium and Electron apps whose renderers aren't actually sandboxed get a
   red warning triangle on their stack, a red second line, and rank higher in
-  the list. Artemis catches them two ways:
+  the list. Sandman catches them two ways:
   - Live: the app is running and at least one renderer has no sandbox
     ("Renderers unsandboxed").
   - From the bundle: it's built on Electron older than 20, when renderers
@@ -77,14 +77,14 @@ renderer sandbox on. Artemis checks, and flags the ones that didn't (below).
 ## Managing a layered app
 
 Because sandboxes don't nest, a seatbelt can only go on one of these apps if
-its own sandboxes come off. Artemis detects them, warns in the Manage sheet,
+its own sandboxes come off. Sandman detects them, warns in the Manage sheet,
 and won't manage one until you tick "Turn off its own sandbox". It then starts
 Chromium-based apps with `--no-sandbox` and Firefox with its sandbox
 environment variables switched off.
 
 <p align="center">
   <img src="managing-layered-app.svg" width="100%"
-       alt="Left, keep its own sandboxes: a hostile page is trapped in the renderer's sandbox and needs two bugs to reach your files, but the main process has full user access and nothing is logged. Best for web browsers. Right, Artemis's seatbelt: the renderer has no box of its own, so the page reaches whatever files the seatbelt allows, but credentials are blocked, the main process is kept from credentials, mail and launch agents, and every blocked attempt is logged. Worth it when the renderers run unsandboxed anyway.">
+       alt="Left, keep its own sandboxes: a hostile page is trapped in the renderer's sandbox and needs two bugs to reach your files, but the main process has full user access and nothing is logged. Best for web browsers. Right, Sandman's seatbelt: the renderer has no box of its own, so the page reaches whatever files the seatbelt allows, but credentials are blocked, the main process is kept from credentials, mail and launch agents, and every blocked attempt is logged. Worth it when the renderers run unsandboxed anyway.">
 </p>
 
 For a web browser this is a bad trade and not recommended: the browser's own

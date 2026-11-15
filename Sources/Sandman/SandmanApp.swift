@@ -12,15 +12,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 @main
-struct ArtemisApp: App {
+struct SandmanApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = AppStore()
     @StateObject private var seatbelts = SeatbeltStore()
     @StateObject private var telemetry = TelemetryStore()
     @AppStorage(AppTheme.storageKey) private var theme = AppTheme.standard
 
+    init() {
+        LegacyMigration.run()
+    }
+
     var body: some Scene {
-        Window("Artemis", id: "main") {
+        Window("Sandman", id: "main") {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(seatbelts)

@@ -99,7 +99,7 @@ struct SandboxGlyph: View {
     /// Second line: what the state means for this app.
     private var detail: String {
         if isManaged {
-            return app.runtime == .unsandboxed ? "Running without its seatbelt" : "Seatbelt by Artemis"
+            return app.runtime == .unsandboxed ? "Running without its seatbelt" : "Seatbelt by Sandman"
         }
         if app.isSandboxed {
             if app.isIOSApp { return "iOS container" }

@@ -425,7 +425,7 @@ struct ContentView: View {
             }
             Spacer()
             Text(filter == .managed
-                 ? "What each managed app can reach when launched from Artemis"
+                 ? "What each managed app can reach when launched from Sandman"
                  : "Based on the com.apple.security.app-sandbox entitlement in each app's signature")
                 .truncationMode(.tail)
                 .layoutPriority(-1)
@@ -455,7 +455,7 @@ struct ContentView: View {
     private func exportCSV() {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
-        panel.nameFieldStringValue = "artemis-\(filter.rawValue).csv"
+        panel.nameFieldStringValue = "sandman-\(filter.rawValue).csv"
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         func field(_ value: String) -> String {
@@ -625,7 +625,7 @@ struct ManagedCard: View {
                 Label {
                     VStack(alignment: .leading, spacing: 1) {
                         Text("RUNNING UNPROTECTED").font(.headline.weight(.heavy))
-                        Text("Opened outside Artemis. None of the blocks below are in force.")
+                        Text("Opened outside Sandman. None of the blocks below are in force.")
                             .font(.caption.weight(.medium))
                     }
                 } icon: {
@@ -732,7 +732,7 @@ struct ManagedCard: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Artemis moves the real app to ~/Applications/Managed Applications/Originals and puts a launcher with the same name and icon in its place. macOS may ask for permission to change apps. Files and links that open in \(app.name) can still start it without its seatbelt, and its own updater may complain that it has moved. Restore Original App undoes this.")
+            Text("Sandman moves the real app to ~/Applications/Managed Applications/Originals and puts a launcher with the same name and icon in its place. macOS may ask for permission to change apps. Files and links that open in \(app.name) can still start it without its seatbelt, and its own updater may complain that it has moved. Restore Original App undoes this.")
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

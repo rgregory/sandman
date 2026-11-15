@@ -14,7 +14,7 @@ enum AppScanner {
     }
 
     /// `running` maps resolved bundle paths to the pid of the running instance.
-    /// `replaced` maps a public path that now holds an Artemis launcher to where the real app is.
+    /// `replaced` maps a public path that now holds an Sandman launcher to where the real app is.
     static func scanAll(running: [String: pid_t], replaced: [String: String] = [:]) -> [AppRecord] {
         var seen = Set<String>()
         var bundles: [URL] = []
@@ -116,7 +116,7 @@ final class AppStore: ObservableObject {
     @Published var apps: [AppRecord] = []
     @Published var isScanning = false
     @Published var lastScan: Date?
-    /// Public path -> real path for apps Artemis has replaced with a launcher. Set by the UI.
+    /// Public path -> real path for apps Sandman has replaced with a launcher. Set by the UI.
     var replaced: [String: String] = [:]
 
     /// Rescans after a short wait, for when an app has just been started or quit.
