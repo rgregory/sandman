@@ -4,6 +4,8 @@ import UniformTypeIdentifiers
 
 enum Filter: String, CaseIterable {
     case unprotected, layered, managed, sandboxed, all
+    /// Open and exposed: reached only from the headline's Show them.
+    case highRisk
 }
 
 /// What, if anything, keeps an app in check. Every app is exactly one of these, so the tiles
@@ -57,6 +59,7 @@ struct ContentView: View {
         case .managed: rows = rows.filter { seatbelts.entries[$0.id] != nil }
         case .sandboxed: rows = rows.filter { $0.isSandboxed }
         case .all: break
+        case .highRisk: rows = rows.filter { governance($0) == .open && !$0.exposure.reasons.isEmpty }
         }
         let query = search.trimmingCharacters(in: .whitespaces)
         if !query.isEmpty {
@@ -214,7 +217,6 @@ struct ContentView: View {
         let kinds = scoped.map(governance)
         let sandboxed = kinds.filter { $0 == .sandboxed }.count
         let layered = kinds.filter { $0 == .layered }.count
-        let managedGoverned = kinds.filter { $0 == .managed }.count
         let open = kinds.filter { $0 == .open }.count
         let managed = scoped.filter { seatbelts.entries[$0.id] != nil }.count
         let exposedNow = scoped.filter { seatbelts.entries[$0.id] != nil && $0.runtime == .unsandboxed }.count
@@ -228,12 +230,13 @@ struct ContentView: View {
             RiskHeadline(running: running.count, atRisk: atRisk.count, exposed: exposedAtRisk) {
                 withAnimation(.smooth) {
                     activeOnly = true
-                    filter = .unprotected
+                    filter = exposedAtRisk > 0 ? .highRisk : .unprotected
                 }
             }
+            .padding(.leading, 6)
             HStack(spacing: 10 + theme.gap * 2) {
                 StatTile(title: "No sandbox", count: open, symbol: "lock.open.fill",
-                         tint: Palette.orange, isActive: filter == .unprotected) { withAnimation(.smooth) { filter = .unprotected } }
+                         tint: Palette.orange, isActive: filter == .unprotected || filter == .highRisk) { withAnimation(.smooth) { filter = .unprotected } }
                 StatTile(title: "Layered", count: layered, symbol: "square.stack.3d.up.fill",
                          tint: Palette.indigo, isActive: filter == .layered) { withAnimation(.smooth) { filter = .layered } }
                 StatTile(title: exposedNow == 0 ? "Managed" : "Managed · \(exposedNow) unprotected",
@@ -242,11 +245,12 @@ struct ContentView: View {
                          tint: exposedNow == 0 ? Palette.blue : Palette.red, isActive: filter == .managed) { withAnimation(.smooth) { filter = .managed } }
                 StatTile(title: "Sandboxed", count: sandboxed, symbol: "lock.shield.fill",
                          tint: Palette.green, isActive: filter == .sandboxed) { withAnimation(.smooth) { filter = .sandboxed } }
-                StatTile(title: activeOnly ? "Running apps" : "All applications", count: total, symbol: "square.grid.2x2.fill",
-                         tint: .accentColor, isActive: filter == .all) { withAnimation(.smooth) { filter = .all } }
+                // With Active on, the headline already says how many apps are running.
+                if !activeOnly {
+                    StatTile(title: "All applications", count: total, symbol: "square.grid.2x2.fill",
+                             tint: .accentColor, isActive: filter == .all) { withAnimation(.smooth) { filter = .all } }
+                }
             }
-            CoverageBar(sandboxed: sandboxed, layered: layered, managed: managedGoverned,
-                        open: open, runningOnly: activeOnly)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -603,13 +607,19 @@ struct RiskHeadline: View {
                         .stroke(Palette.red, style: StrokeStyle(lineWidth: 9, lineCap: .round))
                         .rotationEffect(.degrees(-90))
                         .animation(.smooth(duration: 0.6), value: highFraction)
-                    Text("\(Int((fraction * 100).rounded()))%")
-                        .font(.system(.title3, design: .rounded, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(tint)
-                        .contentTransition(.numericText(value: fraction))
+                    VStack(spacing: -2) {
+                        Text("\(exposed > 0 ? exposed : atRisk)")
+                            .font(.system(.title2, design: .rounded, weight: .bold))
+                            .monospacedDigit()
+                            .foregroundStyle(tint)
+                            .contentTransition(.numericText(value: Double(exposed > 0 ? exposed : atRisk)))
+                        Text("of \(running)")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .frame(width: 66, height: 66)
+                .padding(5)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(headline)
@@ -622,7 +632,7 @@ struct RiskHeadline: View {
                 }
                 Spacer(minLength: 0)
                 if atRisk > 0 {
-                    Label("Show them", systemImage: "arrow.right.circle.fill")
+                    Label(exposed > 0 ? "Show the \(exposed)" : "Show them", systemImage: "arrow.right.circle.fill")
                         .font(.callout.weight(.medium))
                         .foregroundStyle(tint)
                 }
@@ -644,53 +654,11 @@ struct RiskHeadline: View {
         if atRisk == 0 { return "Each one is sandboxed, layered or wearing Sandman's seatbelt." }
         if exposed > 0 {
             let quiet = atRisk - exposed
-            var text = "Open to your files and \(exposed == 1 ? "pulls" : "pull") in outside content or \(exposed == 1 ? "takes" : "take") orders from an agent."
-            if quiet > 0 { text += " \(quiet) more \(quiet == 1 ? "is" : "are") open but quiet." }
+            var text = "Open to your files and facing outside content or agents"
+            if quiet > 0 { text += " · \(quiet) more open but quiet" }
             return text
         }
         return "No sandbox and no seatbelt: \(atRisk == 1 ? "it" : "they") can read and change anything you can, but nothing outside reaches \(atRisk == 1 ? "it" : "them")."
-    }
-}
-
-/// How the apps in view split by what keeps them in check: sandboxed, layered, managed, or
-/// nothing at all. The label gives the share with no governance.
-struct CoverageBar: View {
-    let sandboxed: Int
-    let layered: Int
-    let managed: Int
-    let open: Int
-    var runningOnly = false
-
-    private var total: Int { sandboxed + layered + managed + open }
-    private var openPercent: Int { total == 0 ? 0 : Int((Double(open) / Double(total) * 100).rounded()) }
-
-    private var segments: [(Int, Color)] {
-        [(sandboxed, Palette.green), (layered, Palette.indigo), (managed, Palette.blue), (open, Palette.orange.opacity(0.55))]
-    }
-
-    var body: some View {
-        HStack(spacing: 10) {
-            GeometryReader { geo in
-                HStack(spacing: 2) {
-                    ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
-                        if segment.0 > 0 {
-                            Capsule().fill(segment.1)
-                                .frame(width: max(4, (geo.size.width - 6) * Double(segment.0) / Double(max(total, 1))))
-                        }
-                    }
-                }
-                .animation(.smooth(duration: 0.6), value: total)
-                .animation(.smooth(duration: 0.6), value: open)
-            }
-            .frame(height: 8)
-            Text(runningOnly ? "\(openPercent)% of running apps at risk" : "\(openPercent)% at risk")
-                .font(.caption.weight(openPercent > 0 ? .semibold : .regular))
-                .monospacedDigit()
-                .foregroundStyle(openPercent > 0 ? Palette.orange : Color.secondary)
-                .help("No App Sandbox, no sandboxed helpers, and no seatbelt from Sandman: full access to your files")
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(openPercent) percent of \(runningOnly ? "running " : "")applications have no sandbox or seatbelt")
     }
 }
 
