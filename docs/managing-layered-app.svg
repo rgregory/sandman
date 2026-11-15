@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 456" width="960" height="456" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>Keeping an app's own sandboxes versus swapping in Artemis's seatbelt</title>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="red"/></marker>
+  </defs>
+  <style>
+    .bg{fill:#ffffff}.panel{fill:#f6f8fa}.ink{fill:#1f2328}.muted{fill:#59636e}
+    .line{stroke:#d1d9e0}.box{fill:#ffffff;stroke:#afb8c1}
+    .green{fill:#1a7f37}.sgreen{stroke:#1a7f37}.tgreen{fill:#dafbe1}
+    .orange{fill:#bc4c00}.sorange{stroke:#bc4c00}.torange{fill:#fff1e5}
+    .indigo{fill:#5034c4}.sindigo{stroke:#5034c4}.tindigo{fill:#ebe5ff}
+    .blue{fill:#0969da}.sblue{stroke:#0969da}.tblue{fill:#ddf4ff}
+    .red{fill:#cf222e}.sred{stroke:#cf222e}.tred{fill:#ffebe9}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#0d1117}.panel{fill:#161b22}.ink{fill:#e6edf3}.muted{fill:#9198a1}
+      .line{stroke:#3d444d}.box{fill:#0d1117;stroke:#59636e}
+      .green{fill:#3fb950}.sgreen{stroke:#3fb950}.tgreen{fill:#12261a}
+      .orange{fill:#f0883e}.sorange{stroke:#f0883e}.torange{fill:#2d1a0c}
+      .indigo{fill:#a371f7}.sindigo{stroke:#a371f7}.tindigo{fill:#221a3d}
+      .blue{fill:#4493f8}.sblue{stroke:#4493f8}.tblue{fill:#0c2645}
+      .red{fill:#f85149}.sred{stroke:#f85149}.tred{fill:#3a1517}
+    }
+    text{font-size:13px}.h{font-size:17px;font-weight:600}.s{font-size:12px}.lbl{font-size:12px;font-weight:500}
+    .pill{font-size:11px;font-weight:600}
+  </style>
+  <rect class="bg" width="960" height="456" rx="12"/>
+
+  <!-- ================= LEFT: keep own sandboxes ================= -->
+  <g transform="translate(15,0)">
+    <text class="h ink" x="10" y="32">Keep its own sandboxes</text>
+    <text class="s muted" x="10" y="52">The default</text>
+
+    <rect x="10" y="72" width="300" height="190" rx="14" fill="none" class="line" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <text class="s muted" x="24" y="92">the app</text>
+    <!-- main -->
+    <rect x="28" y="104" width="120" height="40" rx="7" class="torange sorange" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text class="lbl ink" x="88" y="128" text-anchor="middle">Main process</text>
+    <!-- trusted helper -->
+    <rect x="168" y="104" width="124" height="40" rx="7" class="tindigo sindigo" stroke-width="2.5"/>
+    <text class="lbl indigo" x="230" y="128" text-anchor="middle">Network / GPU</text>
+    <!-- renderer with page -->
+    <rect x="28" y="164" width="150" height="80" rx="9" class="tindigo sindigo" stroke-width="3"/>
+    <text class="s indigo" x="40" y="182" font-weight="600">Renderer sandbox</text>
+    <rect x="44" y="194" width="44" height="36" rx="5" class="tred sred" stroke-width="1.5"/>
+    <text class="red" x="66" y="218" text-anchor="middle" font-weight="700" font-size="16">!</text>
+    <text class="s ink" x="96" y="210">hostile</text><text class="s ink" x="96" y="225">page</text>
+    <!-- arrow blocked -->
+    <path d="M178 204 L232 204" class="sred" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+    <circle cx="246" cy="204" r="11" class="red"/>
+    <path d="M241 199 L251 209 M251 199 L241 209" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+    <text class="s ink" x="198" y="236">2 bugs to get out</text>
+    <!-- files -->
+    <g transform="translate(330,150)">
+      <path d="M0 8 h22 l6 6 h32 v46 h-60 z" class="box" stroke-width="1.5"/>
+      <text class="s ink" x="30" y="80" text-anchor="middle">Your files</text>
+    </g>
+
+    <rect x="10" y="306" width="420" height="30" rx="8" class="torange"/>
+    <text class="ink" x="24" y="326"><tspan font-weight="600" class="orange">Main process</tspan>  full user access</text>
+    <rect x="10" y="344" width="420" height="30" rx="8" class="panel"/>
+    <text class="ink" x="24" y="364"><tspan font-weight="600" class="muted">Logging</tspan>  none</text>
+
+    <rect x="10" y="394" width="200" height="26" rx="13" class="tgreen sgreen" stroke-width="1.5"/>
+    <text class="pill green" x="110" y="411" text-anchor="middle">BEST FOR WEB BROWSERS</text>
+  </g>
+
+  <line x1="480" y1="20" x2="480" y2="436" class="line" stroke-width="1"/>
+
+  <!-- ================= RIGHT: Artemis seatbelt ================= -->
+  <g transform="translate(500,0)">
+    <text class="h ink" x="10" y="32">Swap in Artemis's seatbelt</text>
+    <text class="s muted" x="10" y="52">After ticking "Turn off its own sandbox"</text>
+
+    <rect x="4" y="66" width="312" height="202" rx="18" class="tblue sblue" stroke-width="3"/>
+    <text class="pill blue" x="22" y="88">ARTEMIS SEATBELT</text>
+    <rect x="28" y="104" width="120" height="40" rx="7" class="box" stroke-width="1.2"/>
+    <text class="lbl ink" x="88" y="128" text-anchor="middle">Main process</text>
+    <rect x="168" y="104" width="124" height="40" rx="7" class="box" stroke-width="1.2"/>
+    <text class="lbl ink" x="230" y="128" text-anchor="middle">Network / GPU</text>
+    <rect x="28" y="164" width="150" height="80" rx="9" class="box" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <text class="s muted" x="40" y="182">Renderer (no own sandbox)</text>
+    <rect x="44" y="194" width="44" height="36" rx="5" class="tred sred" stroke-width="1.5"/>
+    <text class="red" x="66" y="218" text-anchor="middle" font-weight="700" font-size="16">!</text>
+    <text class="s ink" x="96" y="210">hostile</text><text class="s ink" x="96" y="225">page</text>
+    <!-- reaches allowed files -->
+    <path d="M178 226 C 240 226, 270 250, 318 256" class="sred" stroke-width="2" fill="none" marker-end="url(#ah)"/>
+    <g transform="translate(340,222)">
+      <path d="M0 8 h22 l6 6 h32 v46 h-60 z" class="box" stroke-width="1.5"/>
+      <text class="s ink" x="30" y="76" text-anchor="middle">Allowed files</text>
+    </g>
+    <!-- blocked at the seatbelt wall -->
+    <path d="M178 196 L300 172" class="sred" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+    <circle cx="316" cy="170" r="11" class="red"/>
+    <path d="M311 165 L321 175 M321 165 L311 175" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+    <g transform="translate(340,140)">
+      <rect x="0" y="6" width="56" height="40" rx="6" class="box" stroke-width="1.5"/>
+      <circle cx="28" cy="26" r="7" fill="none" class="line" stroke-width="2"/>
+      <text class="s ink" x="28" y="64" text-anchor="middle">Credentials</text>
+    </g>
+
+    <rect x="0" y="306" width="440" height="30" rx="8" class="tblue"/>
+    <text class="ink" x="14" y="326"><tspan font-weight="600" class="blue">Main process</tspan>  kept from credentials, mail, launch agents</text>
+    <rect x="0" y="344" width="440" height="30" rx="8" class="tblue"/>
+    <text class="ink" x="14" y="364"><tspan font-weight="600" class="blue">Logging</tspan>  every blocked attempt in Activity</text>
+
+    <rect x="0" y="394" width="440" height="26" rx="13" class="tindigo sindigo" stroke-width="1.5"/>
+    <text class="pill indigo" x="220" y="411" text-anchor="middle">WORTH IT WHEN ITS RENDERERS RUN UNSANDBOXED ANYWAY</text>
+  </g>
+</svg>

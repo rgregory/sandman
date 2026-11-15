@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" width="960" height="250" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>How to read a row in Artemis</title>
+  <style>
+    .bg{fill:#ffffff}.panel{fill:#f6f8fa}.ink{fill:#1f2328}.muted{fill:#59636e}.line{stroke:#d1d9e0}.dim{fill:#d1d9e0}
+    .green{fill:#1a7f37}.orange{fill:#bc4c00}.yellow{fill:#9a6700}.red{fill:#cf222e}.indigo{fill:#5034c4}.blue{fill:#0969da}
+    .sgreen{stroke:#1a7f37}.sorange{stroke:#bc4c00}.sred{stroke:#cf222e}.sblue{stroke:#0969da}
+    @media (prefers-color-scheme: dark){
+      .bg{fill:#0d1117}.panel{fill:#161b22}.ink{fill:#e6edf3}.muted{fill:#9198a1}.line{stroke:#3d444d}.dim{fill:#3d444d}
+      .green{fill:#3fb950}.orange{fill:#f0883e}.yellow{fill:#d29922}.red{fill:#f85149}.indigo{fill:#a371f7}.blue{fill:#4493f8}
+      .sgreen{stroke:#3fb950}.sorange{stroke:#f0883e}.sred{stroke:#f85149}.sblue{stroke:#4493f8}
+    }
+    text{font-size:12px}.h{font-size:13px;font-weight:600;letter-spacing:.04em}
+  </style>
+  <rect class="bg" width="960" height="250" rx="12"/>
+
+  <!-- EXPOSURE -->
+  <g transform="translate(20,20)">
+    <rect class="panel" width="290" height="210" rx="10"/>
+    <text class="h muted" x="16" y="26">EXPOSURE</text>
+    <g transform="translate(16,48)">
+      <rect class="yellow" x="0" y="10" width="8" height="5" rx="2.5"/><rect class="yellow" x="11" y="7" width="8" height="8" rx="4"/>
+      <rect class="orange" x="22" y="4" width="8" height="11" rx="4"/><rect class="orange" x="33" y="1" width="8" height="14" rx="4"/>
+      <rect class="red" x="44" y="-2" width="8" height="17" rx="4"/>
+      <text class="ink" x="66" y="13">Heat meter: fills and warms with risk</text>
+    </g>
+    <g transform="translate(16,84)">
+      <rect class="yellow" x="0" y="10" width="8" height="5" rx="2.5"/><rect class="dim" x="11" y="7" width="8" height="8" rx="4"/>
+      <rect class="dim" x="22" y="4" width="8" height="11" rx="4"/><rect class="dim" x="33" y="1" width="8" height="14" rx="4"/>
+      <rect class="dim" x="44" y="-2" width="8" height="17" rx="4"/>
+      <text class="ink" x="66" y="13">Low: little reaches it from outside</text>
+    </g>
+    <text class="orange" x="20" y="135" font-size="16" font-weight="700">↓</text>
+    <text class="ink" x="40" y="133">Pulls in web pages, messages, links</text>
+    <text class="red" x="20" y="165" font-size="16" font-weight="700">↑</text>
+    <text class="ink" x="40" y="163">Takes orders from an AI agent or scripts</text>
+    <text class="muted" x="16" y="196">Both arrows = the riskiest apps, listed first</text>
+  </g>
+
+  <!-- SANDBOX -->
+  <g transform="translate(330,20)">
+    <rect class="panel" width="290" height="210" rx="10"/>
+    <text class="h muted" x="16" y="26">SANDBOX</text>
+    <path transform="translate(18,44)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="green"/>
+    <path transform="translate(22,51)" d="M0 4 L3.5 7.5 L10 1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <text class="ink" x="50" y="60">Sandboxed (App Sandbox)</text>
+    <g transform="translate(18,82)">
+      <rect class="orange" x="0" y="8" width="16" height="12" rx="2"/>
+      <path d="M4 8 V4 a5 5 0 0 1 10 0" fill="none" class="sorange" stroke-width="2.4"/>
+    </g>
+    <text class="ink" x="50" y="98">None: full access to your files</text>
+    <g transform="translate(16,120)" class="indigo">
+      <rect x="0" y="2" width="11" height="15" rx="2.5" opacity=".45"/><rect x="4" y="1.5" width="11" height="15" rx="2.5" opacity=".65"/>
+      <rect x="8" y="1" width="11" height="15" rx="2.5" opacity=".85"/><rect x="12" y="0.5" width="11" height="15" rx="2.5"/>
+    </g>
+    <text class="ink" x="50" y="134">N sandboxes: helpers boxed, main open</text>
+    <path transform="translate(18,156)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="blue"/>
+    <path transform="translate(18,156)" d="M9 0 V21 C4 19 0 15 0 10 V4 Z" fill="#fff" opacity=".45"/>
+    <text class="ink" x="50" y="172">Managed: Artemis's seatbelt</text>
+    <text class="muted" x="16" y="198">Second line says what it means for that app</text>
+  </g>
+
+  <!-- MANAGE / SIGNATURE / LIVE -->
+  <g transform="translate(640,20)">
+    <rect class="panel" width="300" height="210" rx="10"/>
+    <text class="h muted" x="16" y="26">MANAGE · SIGNATURE · LIVE</text>
+    <circle cx="27" cy="54" r="9" class="blue"/>
+    <path d="M27 49 V59 M22 54 H32" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    <text class="ink" x="50" y="58">Manage this app (opens the sheet)</text>
+    <g transform="translate(18,78)">
+      <circle cx="9" cy="10" r="9" class="green"/><path d="M5 10 L8 13 L13 7" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <text class="ink" x="50" y="93">Signed and hardened</text>
+    <g transform="translate(18,108)">
+      <circle cx="9" cy="10" r="9" class="yellow"/>
+    </g>
+    <text class="ink" x="50" y="123">Ad hoc (local build)</text>
+    <g transform="translate(18,138)">
+      <circle cx="9" cy="10" r="9" class="red"/><path d="M5.5 6.5 L12.5 13.5 M12.5 6.5 L5.5 13.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <text class="ink" x="50" y="153">Unsigned</text>
+    <circle cx="27" cy="180" r="9" class="orange" opacity=".25"/><circle cx="27" cy="180" r="4" class="orange"/>
+    <text class="ink" x="50" y="184">Pulsing dot: running right now, open</text>
+  </g>
+</svg>
