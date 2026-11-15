@@ -24,7 +24,7 @@ everything to apps running right now.
 
 <p align="center">
   <img src="docs/reading-the-list.svg" width="100%"
-       alt="Legend. Exposure: a five-bar heat meter that fills and warms with risk, a down arrow for apps that pull in outside content, an up arrow for apps that take orders from an agent. Sandbox: green shield sandboxed, orange open lock none, indigo stack for apps whose helpers sandbox themselves, blue half shield managed. Manage, signature and live: plus button to manage, green seal signed and hardened, amber ad hoc, red unsigned, pulsing orange dot running right now without a sandbox.">
+       alt="Legend. Exposure: a five-bar heat meter that fills and warms with risk, a down arrow for apps that pull in outside content, an up arrow for apps that take orders from an agent. Sandbox: green shield sandboxed, orange open lock none, indigo stack for apps whose helpers sandbox themselves, the same stack with a red warning triangle when their renderers run unsandboxed, blue half shield managed. Manage, signature and live: plus button to manage, green seal signed and hardened, amber ad hoc, red unsigned, pulsing orange dot running right now without a sandbox.">
 </p>
 
 Double-click a row for the details sidebar.
@@ -41,6 +41,7 @@ blocked attempt is logged. The app itself isn't modified.
 
 "No sandbox" describes the main process only. Chromium, Firefox and Electron
 apps lock each helper into its own sandbox, and sandboxes don't nest.
+Electron apps whose windows run unsandboxed get a red ⚠ and rank higher.
 
 <p align="center">
   <img src="docs/layered-sandboxes.svg" width="100%"

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" width="960" height="250" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 284" width="960" height="284" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
   <title>How to read a row in Artemis</title>
   <style>
     .bg{fill:#ffffff}.panel{fill:#f6f8fa}.ink{fill:#1f2328}.muted{fill:#59636e}.line{stroke:#d1d9e0}.dim{fill:#d1d9e0}
@@ -11,11 +11,11 @@
     }
     text{font-size:12px}.h{font-size:13px;font-weight:600;letter-spacing:.04em}
   </style>
-  <rect class="bg" width="960" height="250" rx="12"/>
+  <rect class="bg" width="960" height="284" rx="12"/>
 
   <!-- EXPOSURE -->
   <g transform="translate(20,20)">
-    <rect class="panel" width="290" height="210" rx="10"/>
+    <rect class="panel" width="290" height="244" rx="10"/>
     <text class="h muted" x="16" y="26">EXPOSURE</text>
     <g transform="translate(16,48)">
       <rect class="yellow" x="0" y="10" width="8" height="5" rx="2.5"/><rect class="yellow" x="11" y="7" width="8" height="8" rx="4"/>
@@ -33,12 +33,12 @@
     <text class="ink" x="40" y="133">Pulls in web pages, messages, links</text>
     <text class="red" x="20" y="165" font-size="16" font-weight="700">↑</text>
     <text class="ink" x="40" y="163">Takes orders from an AI agent or scripts</text>
-    <text class="muted" x="16" y="196">Both arrows = the riskiest apps, listed first</text>
+    <text class="muted" x="16" y="228">Both arrows = the riskiest apps, listed first</text>
   </g>
 
   <!-- SANDBOX -->
   <g transform="translate(330,20)">
-    <rect class="panel" width="290" height="210" rx="10"/>
+    <rect class="panel" width="290" height="244" rx="10"/>
     <text class="h muted" x="16" y="26">SANDBOX</text>
     <path transform="translate(18,44)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="green"/>
     <path transform="translate(22,51)" d="M0 4 L3.5 7.5 L10 1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
@@ -53,15 +53,25 @@
       <rect x="8" y="1" width="11" height="15" rx="2.5" opacity=".85"/><rect x="12" y="0.5" width="11" height="15" rx="2.5"/>
     </g>
     <text class="ink" x="50" y="134">N sandboxes: helpers boxed, main open</text>
-    <path transform="translate(18,156)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="blue"/>
-    <path transform="translate(18,156)" d="M9 0 V21 C4 19 0 15 0 10 V4 Z" fill="#fff" opacity=".45"/>
-    <text class="ink" x="50" y="172">Managed: Artemis's seatbelt</text>
-    <text class="muted" x="16" y="198">Second line says what it means for that app</text>
+    <g transform="translate(16,154)" class="indigo">
+      <rect x="0" y="2" width="11" height="15" rx="2.5" opacity=".45"/><rect x="4" y="1.5" width="11" height="15" rx="2.5" opacity=".65"/>
+      <rect x="8" y="1" width="11" height="15" rx="2.5" opacity=".85"/><rect x="12" y="0.5" width="11" height="15" rx="2.5"/>
+    </g>
+    <g transform="translate(29,146)">
+      <circle cx="6" cy="6" r="7.5" class="panel"/>
+      <path d="M6 0 L12 11 H0 Z" class="red"/>
+      <path d="M6 4 V7.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="6" cy="9.4" r=".9" fill="#fff"/>
+    </g>
+    <text class="red" x="50" y="168" font-weight="600">Renderers open: web content unboxed</text>
+    <path transform="translate(18,188)" d="M9 0 L18 4 V10 C18 15 14 19 9 21 C4 19 0 15 0 10 V4 Z" class="blue"/>
+    <path transform="translate(18,188)" d="M9 0 V21 C4 19 0 15 0 10 V4 Z" fill="#fff" opacity=".45"/>
+    <text class="ink" x="50" y="204">Managed: Artemis's seatbelt</text>
+    <text class="muted" x="16" y="230">Second line says what it means for that app</text>
   </g>
 
   <!-- MANAGE / SIGNATURE / LIVE -->
   <g transform="translate(640,20)">
-    <rect class="panel" width="300" height="210" rx="10"/>
+    <rect class="panel" width="300" height="244" rx="10"/>
     <text class="h muted" x="16" y="26">MANAGE · SIGNATURE · LIVE</text>
     <circle cx="27" cy="54" r="9" class="blue"/>
     <path d="M27 49 V59 M22 54 H32" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
@@ -78,7 +88,7 @@
       <circle cx="9" cy="10" r="9" class="red"/><path d="M5.5 6.5 L12.5 13.5 M12.5 6.5 L5.5 13.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </g>
     <text class="ink" x="50" y="153">Unsigned</text>
-    <circle cx="27" cy="180" r="9" class="orange" opacity=".25"/><circle cx="27" cy="180" r="4" class="orange"/>
-    <text class="ink" x="50" y="184">Pulsing dot: running right now, open</text>
+    <circle cx="27" cy="186" r="9" class="orange" opacity=".25"/><circle cx="27" cy="186" r="4" class="orange"/>
+    <text class="ink" x="50" y="190">Pulsing dot: running right now, open</text>
   </g>
 </svg>
