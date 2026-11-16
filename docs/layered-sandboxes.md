@@ -69,7 +69,9 @@ renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
   asks the kernel about every process inside the bundle, groups them by role
   (from Chromium's `--type=` and `--utility-sub-type=` arguments, or Firefox's
   process type) and shows how many of each are sandboxed. When the app isn't
-  running it reads the helpers from the bundle instead.
+  running it reads the helpers from the bundle instead. Every app gets the
+  panel, not only the layered ones: an app that is one process says so, and
+  says what that single boundary means.
 - The panel warns when renderers or web content run unsandboxed. That means
   the app was started with `--no-sandbox`, or its developer turned sandboxing
   off.
@@ -86,6 +88,17 @@ renderer sandbox on. Sandman checks, and flags the ones that didn't (below).
   live, while it runs.
 - Other apps that ship sandboxed XPC services or helpers (Sparkle's
   downloader, for example) show "N sandboxed helpers" and get the panel too.
+
+### WebKit apps
+
+Safari and every app with a `WKWebView` are layered as well, but their web,
+GPU and network processes live in the system's WebKit framework rather than in
+the app's own bundle, so matching executable paths never finds them. Sandman
+asks macOS which app each of those processes is working for — the same
+question it answers when it decides whose name goes on a privacy prompt — and
+lists the ones that belong to the selected app. Web content is one process per
+site, each sandboxed, with the app's main process brokering for them: the same
+shape as Chromium, built by the system instead of by the app.
 
 ## Managing a layered app
 

@@ -70,6 +70,9 @@ struct DetailView: View {
                         .padding(4)
                     }
 
+                    CapabilitiesPanel(app: app)
+                        .id(app.id)
+
                     if seatbelts.entries[app.id] != nil {
                         ActivitySection(app: app)
                     }
@@ -97,27 +100,6 @@ struct DetailView: View {
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Entitlements (\(app.entitlements.count))").font(.headline)
-                        if app.entitlements.isEmpty {
-                            Text("This app's signature declares no entitlements.")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(app.entitlements) { item in
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(item.key)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .textSelection(.enabled)
-                                    Text(item.value)
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundStyle(.secondary)
-                                        .textSelection(.enabled)
-                                }
-                                .padding(.vertical, 2)
-                            }
-                        }
-                    }
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -126,7 +108,7 @@ struct DetailView: View {
             ContentUnavailableView(
                 "No Selection",
                 systemImage: "app.dashed",
-                description: Text("Select an application to see its signature and entitlements.")
+                description: Text("Select an application to see what it can reach, and what keeps it in check.")
             )
         }
     }
@@ -667,11 +649,11 @@ struct SandboxLayersPanel: View {
 
     var body: some View {
         Group {
-            if let report, report.isLayered || app.ownSandbox != nil {
+            if let report, !report.layers.isEmpty {
                 Panel {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("Sandbox layers").font(.headline)
+                            Text(report.layers.count > 1 ? "Sandbox layers" : "Process").font(.headline)
                             Spacer()
                             if report.isLive {
                                 Text("\(report.sandboxedRunning) of \(report.running) processes sandboxed")
@@ -752,6 +734,15 @@ struct SandboxLayersPanel: View {
     private func insight(_ report: SandboxLayerReport) -> String {
         let name = app.name
         let noStacking = " It's also why a seatbelt can't go on top: macOS won't start a sandbox inside another, so managing \(name) means giving these layers up."
+
+        // One process: there are no layers to explain, so say what the single boundary is.
+        if report.layers.count <= 1 {
+            if app.isSandboxed {
+                return "\(name) runs as a single process inside its own sandbox. That sandbox is the whole boundary: what it can reach is what you see under \u{201C}What it's allowed to do\u{201D} below, and nothing else."
+            }
+            return "\(name) runs as a single process with no sandbox. Nothing inside it is walled off from anything else, so a bug anywhere in it has everything you have. Splitting the risky work into separate sandboxed processes is what the apps below the Layered tile do; this one doesn't."
+        }
+
         switch app.ownSandbox {
         case .chromium? where app.isBrowser:
             return "Listed as having no sandbox because \(name)'s main process doesn't opt in to App Sandbox. That's only the outer shell. \(name) splits into separate processes and locks each into its own Seatbelt profile as it starts. The renderers that run web pages get the strictest one: no files, no network, no other apps. To reach your files, a hostile page has to break out of a renderer and then find a second bug in a more trusted process. The weak spot is the main process, which runs with your full permissions." + noStacking
@@ -760,7 +751,7 @@ struct SandboxLayersPanel: View {
         case .firefox?:
             return "Listed as having no sandbox because \(name)'s main process doesn't opt in to App Sandbox. It still runs web pages, media decoding and networking in separate processes, each locked into its own Seatbelt profile, with web content getting the strictest. A hostile page has to escape that and then attack the main process, which runs with your full permissions." + noStacking
         case nil where app.isSandboxed:
-            return "\(name) and its helpers each have their own sandbox. A helper that's attacked is held to its own profile, not the app's."
+            return "\(name) and its helpers each have their own sandbox. A helper that's attacked is held to its own profile, not the app's. Its web, GPU and network processes come from the system rather than from \(name)'s own bundle; macOS counts them as working for it, so they are listed here."
         case nil:
             return "\(name) itself isn't sandboxed, but some of its helpers are. That limits what an attack on a helper can do. The main app still runs with your full permissions."
         }

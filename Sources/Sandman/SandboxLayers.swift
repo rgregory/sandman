@@ -82,20 +82,75 @@ enum SandboxLayerScanner {
 
     private static func liveLayers(_ app: AppRecord, bundles: [String]) -> [SandboxLayer] {
         var groups: [String: SandboxLayer] = [:]
-        for pid in allPIDs() {
-            guard let path = executablePath(pid),
-                  let bundle = bundles.first(where: { path.hasPrefix($0 + "/") }) else { continue }
-            let relative = String(path.dropFirst(bundle.count + 1))
-            let (name, role, order) = classify(app, relative: relative, executable: path, arguments: arguments(of: pid))
-            let sandboxed = SandboxInspector.isProcessSandboxed(pid) ? 1 : 0
+        var own = Set<pid_t>()
+        var outside: [(pid_t, String)] = []
+
+        func record(_ name: String, _ role: String, _ order: Int, sandboxed: Bool) {
             if var layer = groups[name], case let .live(running, done) = layer.state {
-                layer.state = .live(running: running + 1, sandboxed: done + sandboxed)
+                layer.state = .live(running: running + 1, sandboxed: done + (sandboxed ? 1 : 0))
                 groups[name] = layer
             } else {
-                groups[name] = SandboxLayer(name: name, role: role, state: .live(running: 1, sandboxed: sandboxed), order: order)
+                groups[name] = SandboxLayer(name: name, role: role,
+                                            state: .live(running: 1, sandboxed: sandboxed ? 1 : 0), order: order)
             }
         }
+
+        for pid in allPIDs() {
+            guard let path = executablePath(pid) else { continue }
+            guard let bundle = bundles.first(where: { path.hasPrefix($0 + "/") }) else {
+                if isSystemHelper(path) { outside.append((pid, path)) }
+                continue
+            }
+            own.insert(pid)
+            let relative = String(path.dropFirst(bundle.count + 1))
+            let (name, role, order) = classify(app, relative: relative, executable: path, arguments: arguments(of: pid))
+            record(name, role, order, sandboxed: SandboxInspector.isProcessSandboxed(pid))
+        }
+
+        // Apps built on WebKit get their web, GPU and network processes from the system, not
+        // from their own bundle, so a path match never finds them. The kernel knows which app
+        // each one is working for; ask it, and attribute them to that app.
+        if !own.isEmpty {
+            for (pid, path) in outside where own.contains(responsiblePID(pid)) {
+                let (name, role, order) = classifySystemHelper(path)
+                record(name, role, order, sandboxed: SandboxInspector.isProcessSandboxed(pid))
+            }
+        }
+
         return groups.values.sorted { ($0.order, $0.name) < ($1.order, $1.name) }
+    }
+
+    /// A helper the system runs on an app's behalf, outside its bundle. WebKit's are the ones
+    /// worth naming: every WKWebView app, Safari included, is split by them.
+    private static func isSystemHelper(_ path: String) -> Bool {
+        path.contains("/WebKit.framework/")
+    }
+
+    private static func classifySystemHelper(_ path: String) -> (String, String, Int) {
+        let exe = (path as NSString).lastPathComponent
+        if exe.hasPrefix("com.apple.WebKit.WebContent") {
+            return ("Web content", "Run web pages and their JavaScript, each site in its own process", 1)
+        }
+        if exe.hasPrefix("com.apple.WebKit.GPU") {
+            return ("GPU", "Draws to the screen", 2)
+        }
+        if exe.hasPrefix("com.apple.WebKit.Networking") {
+            return ("Network service", "Fetches everything from the internet", 3)
+        }
+        return (exe, "WebKit helper", 6)
+    }
+
+    /// The app a system helper is working for. `responsibility_get_pid_responsible_for_pid` is
+    /// how macOS itself decides which app a helper's privacy prompts and permissions belong to.
+    /// Private, so it is looked up at runtime and the lookup failing just means no WebKit layers.
+    private static let responsibleForPID: (@convention(c) (pid_t) -> pid_t)? = {
+        let handle = UnsafeMutableRawPointer(bitPattern: -2)   // RTLD_DEFAULT
+        guard let symbol = dlsym(handle, "responsibility_get_pid_responsible_for_pid") else { return nil }
+        return unsafeBitCast(symbol, to: (@convention(c) (pid_t) -> pid_t).self)
+    }()
+
+    private static func responsiblePID(_ pid: pid_t) -> pid_t {
+        responsibleForPID?(pid) ?? -1
     }
 
     private static func classify(_ app: AppRecord, relative: String, executable: String,

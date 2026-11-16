@@ -31,7 +31,10 @@ everything to apps running right now.
        alt="Legend. Exposure: a five-bar heat meter that fills and warms with risk, a down arrow for apps that pull in outside content, an up arrow for apps that take orders from an agent. Sandbox: green shield sandboxed, orange open lock none, indigo stack for apps whose helpers sandbox themselves, the same stack with a red warning triangle when their renderers run unsandboxed, blue half shield managed. Manage, signature and live: plus button to manage, green seal signed and hardened, amber ad hoc, red unsigned, pulsing orange dot running right now without a sandbox.">
 </p>
 
-Double-click a row for the details sidebar.
+Double-click a row for the details sidebar: what keeps the app in check,
+what it pulls in or takes orders from, and what its entitlements actually
+let it reach, in sentences rather than keys.
+[More →](docs/how-it-works.md)
 
 ## Managed Applications
 
