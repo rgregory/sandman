@@ -22,4 +22,11 @@ Instructions for AI agents working on Sandman.
 
 - Swift Package, macOS 14+. Build with `./build.sh run`.
 - Status colours from `Palette`; glyph views take `selected:` from the table.
+- The last three themes come from the ThemeMonkey package at
+  `../Monkeys/ThemeMonkey`. `ThemeMonkeySkin.swift` is the only file that imports
+  it, and it hands back Sandman's own types — keep it that way, and keep the two
+  environment keys apart: `\.appTheme` is which look the user picked,
+  `\.theme` is ThemeMonkey's resolved tokens. Tokens change in ThemeMonkey, not
+  here. `build.sh` copies its resource bundle into `Contents/Resources`; without
+  that the themes fail soft to ThemeMonkey's built-in one.
 - Commit messages: a short summary line, then what changed and why.

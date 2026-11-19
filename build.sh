@@ -11,6 +11,13 @@ APP="build/Sandman.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Sandman"
+# ThemeMonkey ships its .theme files as a SwiftPM resource bundle, which lands beside the
+# binary rather than inside it. Bundle.module looks in Contents/Resources, so copy any
+# resource bundle across; without it every ThemeMonkey theme fails soft to the built-in one.
+BIN_DIR="$(dirname "$BIN")"
+for bundle in "$BIN_DIR"/*.bundle; do
+  if [ -d "$bundle" ]; then cp -R "$bundle" "$APP/Contents/Resources/"; fi
+done
 cp Support/Info.plist "$APP/Contents/Info.plist"
 # Build the icon with Apple's own tools from the 1024px PNG; fall back to the committed .icns.
 ICONSET="$(mktemp -d)/AppIcon.iconset"

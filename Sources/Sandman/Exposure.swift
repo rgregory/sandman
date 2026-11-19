@@ -14,12 +14,14 @@ struct Exposure: Hashable, Sendable {
         (push.isEmpty ? 0 : 3) + (pull.isEmpty ? 0 : 2) + min(2, max(0, pull.count + push.count - 1))
     }
 
+    /// Said as what the app can do, not as the mechanism behind it: this line is read by
+    /// people who have never heard of an entitlement.
     var label: String {
         switch (pull.isEmpty, push.isEmpty) {
-        case (false, false): return "Pulls + agent"
-        case (true, false): return "Agent"
-        case (false, true): return "Pulls"
-        case (true, true): return "None found"
+        case (false, false): return "Pulls in + takes orders"
+        case (true, false): return "Takes orders"
+        case (false, true): return "Pulls in content"
+        case (true, true): return "Nothing reaches it"
         }
     }
 
@@ -31,9 +33,9 @@ struct Exposure: Hashable, Sendable {
             let table: [(String, String)] = [
                 ("AI assistant", "AI agent"), ("Terminal", "Terminal"), ("Developer tool", "Runs code"),
                 ("Automation", "Automation"), ("Can control", "Controls apps"), ("Web browser", "Browser"),
-                ("Receives messages", "Messages"), ("Downloads", "Syncs files"), ("Opens web", "Web links"),
-                ("Opens email", "Mail links"), ("Web pages and other apps", "URL scheme"),
-                ("Built on a web", "Web engine"), ("Declares that it accepts", "Listens"),
+                ("Receives messages", "Messages"), ("Downloads", "Syncs files"), ("Opens web", "Opens links"),
+                ("Opens email", "Opens email"), ("Web pages and other apps", "Opened by links"),
+                ("Built on a web", "Shows web pages"), ("Declares that it accepts", "Accepts connections"),
             ]
             return table.first { reason.hasPrefix($0.0) }?.1 ?? reason
         }

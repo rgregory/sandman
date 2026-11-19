@@ -19,8 +19,13 @@ enum Palette {
 }
 
 /// The looks Sandman can wear, chosen under View > Theme.
+///
+/// The first six are hand-drawn here. The last three come from ThemeMonkey, the theme
+/// package next door, which owns their tokens and draws them with its own recipe —
+/// `ThemeMonkeySkin.swift` is the whole of the seam.
 enum AppTheme: String, CaseIterable, Identifiable {
     case standard, retro, os9, copland, things, ink
+    case modernOS9, modernBeOS, modernRetro
 
     static let storageKey = "theme"
     var id: String { rawValue }
@@ -33,38 +38,67 @@ enum AppTheme: String, CaseIterable, Identifiable {
         case .copland: return "Copland"
         case .things: return "Things 3"
         case .ink: return "Ink"
+        // The theme file's own name, so the menu can't drift from what it draws.
+        case .modernOS9, .modernBeOS, .modernRetro: return monkeySkin?.label ?? rawValue
         }
     }
 
     var isCustom: Bool { self != .standard }
     var isDark: Bool { self == .ink }
 
-    /// Window background. Nil leaves the system's.
-    var paper: Color? {
+    /// The ThemeMonkey theme behind this case, or nil for Sandman's own looks.
+    var monkeySkin: MonkeySkin? {
         switch self {
-        case .standard: return nil
+        case .modernOS9: return .modernOS9
+        case .modernBeOS: return .modernBeOS
+        case .modernRetro: return .modernRetro
+        default: return nil
+        }
+    }
+
+    var isMonkey: Bool { monkeySkin != nil }
+
+    /// The appearance to pin, or nil to follow the system. A ThemeMonkey theme ships both
+    /// a day and a night palette, so it is never pinned — it answers the system instead.
+    var appearance: ColorScheme? {
+        if isMonkey { return nil }
+        if isDark { return .dark }
+        return isCustom ? .light : nil
+    }
+
+    /// Window background. Nil leaves the system's.
+    var paper: Color? { monkeySkin?.paper ?? handDrawnPaper }
+
+    var accent: Color? { monkeySkin?.accent ?? handDrawnAccent }
+
+    var panel: PanelLook { monkeySkin?.panel ?? handDrawnPanel }
+
+    /// Room between a panel's edge and its content.
+    var panelInset: CGFloat { monkeySkin?.panelInset ?? 10 }
+
+    private var handDrawnPaper: Color? {
+        switch self {
         case .retro: return Color(white: 0.95)
         case .os9: return Color(white: 0.867)                               // Platinum grey
         case .copland: return Color(red: 0.78, green: 0.80, blue: 0.84)     // cooler, bluer grey
         case .things: return Color(red: 0.965, green: 0.968, blue: 0.975)
         case .ink: return Color(red: 0.067, green: 0.075, blue: 0.094)      // blue-black
+        default: return nil                                                 // .standard keeps the system's
         }
     }
 
-    var accent: Color? {
+    private var handDrawnAccent: Color? {
         switch self {
-        case .standard, .retro: return nil
         case .os9: return Color(red: 0.40, green: 0.40, blue: 0.80)         // classic lavender highlight
         case .copland: return Color(red: 0.20, green: 0.45, blue: 0.55)     // teal
         case .things: return Color(red: 0.11, green: 0.49, blue: 0.98)
         case .ink: return Color(red: 0.36, green: 0.74, blue: 0.88)         // cold cyan
+        default: return nil                                                 // .standard and .retro keep the system's
         }
     }
 
-    var panel: PanelLook {
+    private var handDrawnPanel: PanelLook {
         switch self {
-        case .standard:
-            return PanelLook(fill: .clear, corner: 0, border: .clear, borderWidth: 0)
         case .retro:
             let ink = Color(white: 0.30)
             return PanelLook(fill: .white, corner: 8, border: ink, borderWidth: 2,
@@ -84,6 +118,8 @@ enum AppTheme: String, CaseIterable, Identifiable {
             return PanelLook(fill: Color(red: 0.11, green: 0.12, blue: 0.145), corner: 6,
                              border: Color(red: 0.25, green: 0.28, blue: 0.33), borderWidth: 1,
                              selection: Color(red: 0.13, green: 0.25, blue: 0.34))
+        default:
+            return PanelLook(fill: .clear, corner: 0, border: .clear, borderWidth: 0)
         }
     }
 
@@ -97,7 +133,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
     }
 
     var uppercaseLabels: Bool { self == .retro }
-    var showsHeadings: Bool { self == .retro || self == .os9 || self == .copland }
+    var showsHeadings: Bool { self == .retro || self == .os9 || self == .copland || isMonkey }
 }
 
 struct PanelLook {
@@ -114,27 +150,35 @@ struct PanelLook {
     var selection: Color?
 }
 
-private struct ThemeKey: EnvironmentKey {
+private struct AppThemeKey: EnvironmentKey {
     static let defaultValue = AppTheme.standard
 }
 
 extension EnvironmentValues {
-    var theme: AppTheme {
-        get { self[ThemeKey.self] }
-        set { self[ThemeKey.self] = newValue }
+    /// Which look the user picked. ThemeMonkey's `\.theme` is a different thing — the
+    /// resolved tokens of one — and the two are deliberately not spelled the same.
+    var appTheme: AppTheme {
+        get { self[AppThemeKey.self] }
+        set { self[AppThemeKey.self] = newValue }
     }
 }
 
-/// Applies the theme to everything inside. Uses values, not branches, so switching keeps view state.
+/// Applies the theme to everything inside. Uses values, not branches, so switching keeps
+/// view state — except across the ThemeMonkey boundary, where the injector has to wrap the
+/// tree and the subtree is rebuilt once. Switching between the hand-drawn looks, or between
+/// the ThemeMonkey ones, keeps state as before.
 struct ThemeRoot: ViewModifier {
     let theme: AppTheme
 
     func body(content: Content) -> some View {
         content
-            .environment(\.theme, theme)
+            .environment(\.appTheme, theme)
             .tint(theme.accent)
             .background(theme.paper ?? Color.clear)
-            .preferredColorScheme(theme.isDark ? .dark : (theme.isCustom ? .light : nil))
+            .preferredColorScheme(theme.appearance)
+            // Outermost, so ThemeMonkey's tokens reach everything below. A no-op for
+            // Sandman's own looks.
+            .modifier(MonkeyRoot(theme: theme))
     }
 }
 
@@ -143,9 +187,18 @@ struct ThemeRoot: ViewModifier {
 struct ThemedPanel: ViewModifier {
     var tint: Color?
     var isSelection = false
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
 
     func body(content: Content) -> some View {
+        if theme.isMonkey {
+            // ThemeMonkey draws its own: recessed, because a panel holds data.
+            content.modifier(MonkeyPanel(tint: tint, isSelection: isSelection))
+        } else {
+            handDrawn(content)
+        }
+    }
+
+    private func handDrawn(_ content: Content) -> some View {
         let look = theme.panel
         let shape = RoundedRectangle(cornerRadius: look.corner, style: .continuous)
         let wash: Color? = tint == nil ? nil : (isSelection ? (look.selection ?? tint) : tint)
@@ -214,7 +267,7 @@ private struct Bevel: View {
 
 /// A grouped box: the system GroupBox normally, a themed panel otherwise.
 struct Panel<Content: View>: View {
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
     private let content: Content
 
     init(@ViewBuilder content: () -> Content) {
@@ -224,7 +277,7 @@ struct Panel<Content: View>: View {
     var body: some View {
         if theme.isCustom {
             content
-                .padding(10)
+                .padding(theme.panelInset)
                 .themedPanel()
                 .padding(.trailing, theme.gap)
                 .padding(.bottom, theme.gap)

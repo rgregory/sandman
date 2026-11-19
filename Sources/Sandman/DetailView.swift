@@ -4,7 +4,7 @@ import SwiftUI
 struct DetailView: View {
     let app: AppRecord?
     @EnvironmentObject private var seatbelts: SeatbeltStore
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
     private var themed: Bool { theme.isCustom }
 
     var body: some View {
@@ -369,7 +369,7 @@ struct ProtectionStanza: View {
     let name: String
     let options: SeatbeltOptions
     let runtime: RuntimeState
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
     private var themed: Bool { theme.isCustom }
 
     private var heading: (text: String, symbol: String, tint: Color) {

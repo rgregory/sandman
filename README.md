@@ -75,4 +75,7 @@ for them.
 - [Privacy prompts](docs/privacy-prompts.md): why macOS may name Sandman
 - [How it works](docs/how-it-works.md): and what it doesn't catch
 
-Themes: View › Theme (Standard, Retro, OS 9, Copland, Things 3, Ink).
+Themes: View › Theme (Standard, Retro, OS 9, Copland, Things 3, Ink), then
+ModernOS9, ModernBeOS and ModernRetro from
+[ThemeMonkey](../Monkeys/ThemeMonkey), which ships day and night palettes and
+follows the system appearance.

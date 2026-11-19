@@ -42,7 +42,12 @@ struct SandmanApp: App {
         .commands {
             CommandGroup(after: .toolbar) {
                 Picker("Theme", selection: $theme) {
-                    ForEach(AppTheme.allCases) { theme in
+                    // Sandman's own looks first, then the ones ThemeMonkey draws.
+                    ForEach(AppTheme.allCases.filter { !$0.isMonkey }) { theme in
+                        Text(theme.label).tag(theme)
+                    }
+                    Divider()
+                    ForEach(AppTheme.allCases.filter(\.isMonkey)) { theme in
                         Text(theme.label).tag(theme)
                     }
                 }

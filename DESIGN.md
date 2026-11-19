@@ -52,6 +52,43 @@ The reference is `docs/layered-sandboxes.svg`. Match it.
 - **No decoration that doesn't explain something.** If a shape doesn't help
   the reader understand, cut it.
 
+## Layers
+
+Three depths of one answer — not three audiences, and not a setting. Age and
+"technical level" are the wrong axis: they are proxies for two things that pull
+apart, whether someone has the vocabulary and whether they can act. What
+actually varies is which of these three they need, and the same person needs
+different ones on different days.
+
+- **Verdict.** The top of the window. Does anything need doing, and what.
+  Counts, never percentages. Consequences, never mechanisms. No term from this
+  domain at all — not sandbox, not seatbelt, not exposure.
+- **Reason.** The list. Why this app is here, said as what it can do to you,
+  with one line of specifics under it.
+- **Evidence.** The details sidebar and the deep dives. Entitlements,
+  signatures, seatbelt profiles, log lines, the meters. Precise terms belong
+  here, and only here.
+
+Progressive disclosure carries it: the verdict is always on screen, the rows
+are a glance below, the evidence is one click. Nothing is behind a preference.
+
+The test for the verdict layer: read the top line down a phone line to someone
+who has never heard of the App Sandbox, and they know whether to act.
+
+## Vocabulary
+
+- **Above the evidence layer, no word the reader has to be taught.** Unrestricted,
+  not "no sandbox". Limits, not "seatbelt". What reaches it, not "exposure".
+  "Managed" keeps its name — it is a feature with a deep dive of its own, and
+  the row says what it means.
+- **Say the consequence, not the mechanism.** "Can operate your other apps"
+  beats "has AppleEvents entitlement". The entitlement goes in the sidebar.
+- **No number without its unit in words.** A bare percentage is not a finding,
+  and a denominator that changes when an app quits makes the number drop when
+  nothing got safer.
+- **Nothing is labelled with a judgement it can't support.** "Quiet" sounded
+  like a verdict and was only an absence of signals.
+
 ## App
 
 - Visual over textual: glyphs, meters and stacks in the list; words go on the

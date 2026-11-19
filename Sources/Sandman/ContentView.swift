@@ -92,6 +92,23 @@ struct ContentView: View {
             .help("Drag to resize the details sidebar")
     }
 
+    /// Five bars and two arrows have no units of their own: they mean nothing until
+    /// something says what they count. The quietest line on screen is the right place for
+    /// it, and it was spending itself on an entitlement name — which is evidence, and now
+    /// lives in the tooltip where the rest of the evidence lives.
+    private var meterLegend: some View {
+        (Text(Image(systemName: "arrow.down")).foregroundStyle(Palette.orange)
+         + Text(" takes in content from outside   ")
+         + Text(Image(systemName: "arrow.up")).foregroundStyle(Palette.red)
+         + Text(" does what other software tells it   ")
+         + Text("· taller bars, more of both"))
+            .help("""
+                  Whether an app is restricted comes from the com.apple.security.app-sandbox \
+                  entitlement in its signature. What reaches it is worked out from its \
+                  Info.plist, its frameworks and its entitlements — signals, not proof.
+                  """)
+    }
+
     /// Apps whose usual place now holds a launcher, mapped to where the real app is.
     private var replacedPaths: [String: String] {
         var paths: [String: String] = [:]
@@ -226,19 +243,19 @@ struct ContentView: View {
         return VStack(spacing: 12) {
             RiskHeadline(running: running.count, atRisk: atRisk.count, exposed: exposedAtRisk)
             HStack(spacing: 10 + theme.gap * 2) {
-                StatTile(title: "No sandbox", count: open, symbol: "lock.open.fill",
+                StatTile(title: "Unrestricted", count: open, symbol: "lock.open.fill",
                          tint: Palette.orange, isActive: filter == .unprotected) { withAnimation(.smooth) { filter = .unprotected } }
-                StatTile(title: "Layered", count: layered, symbol: "square.stack.3d.up.fill",
+                StatTile(title: "Partly restricted", count: layered, symbol: "square.stack.3d.up.fill",
                          tint: Palette.indigo, isActive: filter == .layered) { withAnimation(.smooth) { filter = .layered } }
-                StatTile(title: exposedNow == 0 ? "Managed" : "Managed · \(exposedNow) unprotected",
+                StatTile(title: exposedNow == 0 ? "Managed" : "Managed · \(exposedNow) without limits",
                          count: managed,
                          symbol: exposedNow == 0 ? "shield.lefthalf.filled" : "exclamationmark.shield.fill",
                          tint: exposedNow == 0 ? Palette.blue : Palette.red, isActive: filter == .managed) { withAnimation(.smooth) { filter = .managed } }
-                StatTile(title: "Sandboxed", count: sandboxed, symbol: "lock.shield.fill",
+                StatTile(title: "Restricted", count: sandboxed, symbol: "lock.shield.fill",
                          tint: Palette.green, isActive: filter == .sandboxed) { withAnimation(.smooth) { filter = .sandboxed } }
                 // With Active on, the headline already says how many apps are running.
                 if !activeOnly {
-                    StatTile(title: "All applications", count: total, symbol: "square.grid.2x2.fill",
+                    StatTile(title: "All apps", count: total, symbol: "square.grid.2x2.fill",
                              tint: .accentColor, isActive: filter == .all) { withAnimation(.smooth) { filter = .all } }
                 }
             }
@@ -260,74 +277,106 @@ struct ContentView: View {
         }
     }
 
+    // In the No-sandbox view two of the five columns say the same thing on every row:
+    // Sandbox reads "None" by definition, and a signature is beside the point once
+    // nothing is holding the app back. Both go, and the rows close up. What the Sandbox
+    // column carried that isn't a given — whether it is running right now — is already
+    // the orange dot beside the name.
+    @ViewBuilder
     private var standardTable: some View {
-        Table(visible, selection: $selection, sortOrder: $sortOrder) {
-            TableColumn("Application", value: \.name) { app in
-                HStack(spacing: 10) {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                        .shadow(color: .black.opacity(0.12), radius: 1.5, y: 1)
-                    VStack(alignment: .leading, spacing: 1) {
-                        HStack(spacing: 5) {
-                            Text(app.name).font(.title3.weight(.medium)).lineLimit(1)
-                            if app.runtime == .unsandboxed {
-                                LiveDot(color: Palette.orange, selected: selection == app.id)
-                                    .help(seatbelts.entries[app.id] != nil
-                                          ? "Running right now without its seatbelt"
-                                          : "Running right now without a sandbox")
-                            } else if app.runtime == .sandboxed && seatbelts.entries[app.id] != nil {
-                                LiveDot(color: Palette.blue, selected: selection == app.id)
-                                    .help("Running right now with its seatbelt")
-                            }
-                        }
-                        Text(app.version.isEmpty ? app.sourceLabel : "\(app.sourceLabel) · \(app.version)")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+        if filter == .unprotected {
+            Table(visible, selection: $selection, sortOrder: $sortOrder) {
+                TableColumn("Application", value: \.name) { nameCell($0) }
+                    .width(min: 180, ideal: 300)
+                TableColumn("What reaches it", value: \.riskScore) { exposureCell($0) }
+                    .width(min: 150, ideal: 190)
+                // Fixed, not flexible: left to stretch it swallowed the freed width and
+                // parked the button in the middle of 400pt of nothing. The action belongs
+                // against the row's trailing edge, and last, after what it acts on.
+                TableColumn("Manage") { manageCell($0) }
+                    .width(72)
+            }
+        } else {
+            Table(visible, selection: $selection, sortOrder: $sortOrder) {
+                TableColumn("Application", value: \.name) { nameCell($0) }
+                    .width(min: 180, ideal: 240)
+                TableColumn("What reaches it", value: \.riskScore) { exposureCell($0) }
+                    .width(min: 150, ideal: 215)
+                TableColumn("Sandbox", value: \.statusLabel) { app in
+                    SandboxGlyph(app: app, isManaged: seatbelts.entries[app.id] != nil,
+                                 selected: selection == app.id)
                 }
-                .padding(.vertical, 4)
-            }
-            .width(min: 180, ideal: 240)
-
-            TableColumn("Exposure", value: \.riskScore) { app in
-                ExposureMeter(exposure: app.exposure, selected: selection == app.id)
-            }
-            .width(min: 150, ideal: 175)
-
-            TableColumn("Sandbox", value: \.statusLabel) { app in
-                SandboxGlyph(app: app, isManaged: seatbelts.entries[app.id] != nil, selected: selection == app.id)
-            }
-            .width(min: 120, ideal: 140)
-
-            TableColumn("Manage") { app in
-                Group {
-                    if seatbelts.entries[app.id] != nil {
-                        Image(systemName: "shield.lefthalf.filled").foregroundStyle(Palette.blue)
-                            .help("Managed")
-                    } else if SeatbeltStore.isEligible(app) {
-                        Button { managing = app } label: {
-                            Image(systemName: "plus.circle.fill").symbolRenderingMode(.hierarchical)
-                        }
-                        .buttonStyle(.borderless)
-                        .help("Manage \(app.name)…")
-                    } else if app.isSandboxed {
-                        Image(systemName: "minus").foregroundStyle(.quaternary).help("Not needed: already sandboxed")
-                    } else {
-                        Image(systemName: "applelogo").foregroundStyle(.tertiary).help("Part of macOS: can't be managed")
-                    }
+                .width(min: 120, ideal: 140)
+                TableColumn("Signature", value: \.signingLabel) { app in
+                    SignatureSeal(app: app, selected: selection == app.id)
                 }
-                .font(.body)
-                .frame(maxWidth: .infinity)
+                .width(min: 110, ideal: 140)
+                TableColumn("Manage") { manageCell($0) }
+                    .width(72)
             }
-            .width(min: 56, ideal: 64)
-
-            TableColumn("Signature", value: \.signingLabel) { app in
-                SignatureSeal(app: app, selected: selection == app.id)
-            }
-            .width(min: 110, ideal: 140)
         }
+    }
+
+    // MARK: Cells
+
+    private func nameCell(_ app: AppRecord) -> some View {
+        HStack(spacing: 9) {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                .resizable()
+                .frame(width: 26, height: 26)
+                .shadow(color: .black.opacity(0.12), radius: 1.5, y: 1)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 5) {
+                    Text(app.name).font(.body.weight(.medium)).lineLimit(1)
+                    if app.runtime == .unsandboxed {
+                        LiveDot(color: Palette.orange, selected: selection == app.id)
+                            .help(seatbelts.entries[app.id] != nil
+                                  ? "Running right now without its seatbelt"
+                                  : "Running right now without a sandbox")
+                    } else if app.runtime == .sandboxed && seatbelts.entries[app.id] != nil {
+                        LiveDot(color: Palette.blue, selected: selection == app.id)
+                            .help("Running right now with its seatbelt")
+                    }
+                }
+                Text(subtitle(app))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// Under the name: the source and the version — but in the No-sandbox view the source
+    /// is the same badge the Signature column was showing, so only the version is left.
+    private func subtitle(_ app: AppRecord) -> String {
+        if filter == .unprotected && !app.version.isEmpty { return app.version }
+        return app.version.isEmpty ? app.sourceLabel : "\(app.sourceLabel) · \(app.version)"
+    }
+
+    private func exposureCell(_ app: AppRecord) -> some View {
+        ExposureMeter(exposure: app.exposure, selected: selection == app.id)
+    }
+
+    private func manageCell(_ app: AppRecord) -> some View {
+        Group {
+            if seatbelts.entries[app.id] != nil {
+                Image(systemName: "shield.lefthalf.filled").foregroundStyle(Palette.blue)
+                    .help("Managed")
+            } else if SeatbeltStore.isEligible(app) {
+                Button { managing = app } label: {
+                    Image(systemName: "plus.circle.fill").symbolRenderingMode(.hierarchical)
+                }
+                .buttonStyle(.borderless)
+                .help("Manage \(app.name)…")
+            } else if app.isSandboxed {
+                Image(systemName: "minus").foregroundStyle(.quaternary).help("Not needed: already sandboxed")
+            } else {
+                Image(systemName: "applelogo").foregroundStyle(.tertiary).help("Part of macOS: can't be managed")
+            }
+        }
+        .font(.body)
+        .frame(maxWidth: .infinity)
     }
 
     /// The Managed view is a set of cards, one per app, each saying what that app is kept from.
@@ -427,7 +476,7 @@ struct ContentView: View {
                 switch filter {
                 case .unprotected:
                     ContentUnavailableView(
-                        "Nothing here is ungoverned",
+                        "Nothing is running unrestricted",
                         systemImage: "checkmark.shield",
                         description: Text("Nothing matches the current filter.")
                     )
@@ -460,11 +509,15 @@ struct ContentView: View {
                 }
             }
             Spacer()
-            Text(filter == .managed
-                 ? "What each managed app can reach when launched from Sandman"
-                 : "Based on the com.apple.security.app-sandbox entitlement in each app's signature")
-                .truncationMode(.tail)
-                .layoutPriority(-1)
+            if filter == .managed {
+                Text("What each managed app can reach when launched from Sandman")
+                    .truncationMode(.tail)
+                    .layoutPriority(-1)
+            } else if filter != .layered {
+                meterLegend
+                    .truncationMode(.tail)
+                    .layoutPriority(-1)
+            }
         }
         .lineLimit(1)
         .font(.caption)
@@ -523,7 +576,7 @@ struct StatTile: View {
     let tint: Color
     let isActive: Bool
     let action: () -> Void
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
     private var themed: Bool { theme.isCustom }
 
     var body: some View {
@@ -581,69 +634,81 @@ struct RiskHeadline: View {
     private var fraction: Double { running == 0 ? 0 : Double(atRisk) / Double(running) }
     /// The share that is open *and* exposed: high risk, drawn in red at the start of the ring.
     private var highFraction: Double { running == 0 ? 0 : Double(exposed) / Double(running) }
-    /// The headline's share, as a whole percentage.
-    private var percent: Int { Int(((exposed > 0 ? highFraction : fraction) * 100).rounded()) }
+    /// The figure in the ring, and the subject of the sentence beside it.
+    private var count: Int { exposed > 0 ? exposed : atRisk }
     private var tint: Color { atRisk == 0 ? Palette.green : (exposed > 0 ? Palette.red : Palette.orange) }
 
     var body: some View {
         HStack(spacing: 18) {
-                ZStack {
-                    Circle().stroke(tint.opacity(0.18), lineWidth: 13)
-                    // Orange: open but quiet. Red, drawn over it from the top: open and exposed.
-                    Circle()
-                        .trim(from: 0, to: fraction)
-                        .stroke(Palette.orange, style: StrokeStyle(lineWidth: 13, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                        .animation(.smooth(duration: 0.6), value: fraction)
-                    Circle()
-                        .trim(from: 0, to: highFraction)
-                        .stroke(Palette.red, style: StrokeStyle(lineWidth: 13, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                        .animation(.smooth(duration: 0.6), value: highFraction)
-                    VStack(spacing: 0) {
-                        Text("\(percent)%")
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundStyle(tint)
-                            .contentTransition(.numericText(value: Double(percent)))
-                        Text("\(exposed > 0 ? exposed : atRisk) of \(running)")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .frame(width: 108, height: 108)
-                .padding(8)
+            ZStack {
+                Circle().stroke(tint.opacity(0.18), lineWidth: 13)
+                // Orange: open but quiet. Red, drawn over it from the top: open and exposed.
+                Circle()
+                    .trim(from: 0, to: fraction)
+                    .stroke(Palette.orange, style: StrokeStyle(lineWidth: 13, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.smooth(duration: 0.6), value: fraction)
+                Circle()
+                    .trim(from: 0, to: highFraction)
+                    .stroke(Palette.red, style: StrokeStyle(lineWidth: 13, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .animation(.smooth(duration: 0.6), value: highFraction)
+                // A count, not a percentage: 44% was a number whose denominator moved
+                // when you quit an app, so it fell when nothing had got safer. The ring
+                // still carries the proportion; the figure is the thing to act on.
+                Text("\(count)")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(tint)
+                    .contentTransition(.numericText(value: Double(count)))
+            }
+            .frame(width: 96, height: 96)
+            .padding(.vertical, 8)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(headline)
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .contentTransition(.numericText(value: Double(atRisk)))
-                    Text(detail)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(headline)
+                    .font(.system(.title2, design: .rounded, weight: .semibold))
+                    .contentTransition(.numericText(value: Double(atRisk)))
+                Text(detail)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .frame(maxWidth: .infinity)   // ring and sentence sit centred in the window
+        // Flush with the tiles below rather than centred: a centred block over a
+        // full-width row reads as adrift, and the sentence's ragged right edge made the
+        // pair look off-centre even when it wasn't.
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(headline + ". " + detail)
     }
 
+    // The verdict layer, per DESIGN.md: what it can do to you and what to do about it,
+    // in words nobody has to be taught. No sandbox, seatbelt or exposure up here.
     private var headline: String {
-        if running == 0 { return "No apps running" }
-        if atRisk == 0 { return "All \(running) running apps are supervised" }
-        return "\(exposed > 0 ? exposed : atRisk) of \(running) apps running unsupervised"
+        if running == 0 { return "Nothing is running" }
+        if atRisk == 0 { return "Nothing running can reach your whole Mac" }
+        let subject = count == 1 ? "1 app" : "\(count) apps"
+        return "\(subject) can reach everything on this Mac"
     }
 
     private var detail: String {
-        if atRisk == 0 { return "Each one is sandboxed, layered or wearing Sandman's seatbelt." }
+        if running == 0 { return "Open an app and Sandman will say what it can reach." }
+        if atRisk == 0 {
+            return "Every app running right now is held back by macOS or by limits you added."
+        }
         if exposed > 0 {
             let quiet = atRisk - exposed
-            var text = "No sandbox or seatbelt, and facing outside content or agents"
-            if quiet > 0 { text += " · \(quiet) more unsupervised but quiet" }
-            return text
+            var text = "Nothing limits what they can read or change, and each one either takes in "
+                     + "content from the internet or does what other software tells it."
+            if quiet > 0 {
+                text += " \(quiet) more \(quiet == 1 ? "is" : "are") unrestricted, "
+                      + "but nothing reaches \(quiet == 1 ? "it" : "them")."
+            }
+            return text + " Add limits with the + beside an app."
         }
-        return "No sandbox or seatbelt, but nothing outside reaches \(atRisk == 1 ? "it" : "them")"
+        return "Nothing limits what \(atRisk == 1 ? "it" : "they") can read or change, but nothing "
+             + "from outside reaches \(atRisk == 1 ? "it" : "them") either."
     }
 }
 
@@ -685,7 +750,7 @@ struct ManagedCard: View {
     @State private var isStarting = false
     @State private var problem: String?
     @State private var confirmReplace = false
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
     private var themed: Bool { theme.isCustom }
 
     private var options: SeatbeltOptions { seatbelts.entries[app.id]?.options ?? SeatbeltOptions() }

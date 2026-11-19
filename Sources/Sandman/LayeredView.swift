@@ -7,7 +7,7 @@ struct LayeredGallery: View {
     let apps: [AppRecord]
     @Binding var selection: AppRecord.ID?
     @Binding var showInspector: Bool
-    @Environment(\.theme) private var theme
+    @Environment(\.appTheme) private var theme
 
     var body: some View {
         ScrollView {

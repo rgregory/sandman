@@ -42,7 +42,8 @@ struct ExposureMeter: View {
             }
             .font(.callout.weight(.bold))
             VStack(alignment: .leading, spacing: 1) {
-                Text(none ? "Quiet" : exposure.label)
+                // "Quiet" read as a verdict when it only meant no signals were found.
+                Text(exposure.label)
                     .font(.callout.weight(.medium))
                     .foregroundStyle(none ? Color.secondary : .primary)
                 if !none {
@@ -55,7 +56,7 @@ struct ExposureMeter: View {
             }
         }
         .animation(.smooth, value: filled)
-        .help(none ? "No signs that it pulls in outside content or acts for an agent"
+        .help(none ? "Nothing found that reaches this app from outside, and nothing that tells it what to do. Signals, not proof."
               : exposure.reasons.joined(separator: "\n"))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Exposure: \(exposure.label)")
